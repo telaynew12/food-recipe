@@ -1,0 +1,20 @@
+// package main
+
+// import (
+// 	"fmt"
+
+// 	"golang.org/x/crypto/bcrypt"
+// )
+
+// func main() {
+// 	// Replace these with your values
+// 	hashedPassword := "$2a$10$eDlYsKvwmWmeLQjVneE6AOjLjZG60.rXCQ4fH2NgNq1dh/zryMKu6"
+// 	inputPassword := "12345678"
+
+// 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(inputPassword))
+// 	if err != nil {
+// 		fmt.Println("Passwords do not match:", err)
+// 	} else {
+// 		fmt.Println("Passwords match!")
+// 	}
+// }
