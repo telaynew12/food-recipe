@@ -20,7 +20,8 @@ type NuxtAppInjections =
   InjectionType<typeof import("../../node_modules/@nuxtjs/apollo/dist/runtime/plugin.js")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/dev-server-logs.js")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/check-if-layout-used.js")> &
-  InjectionType<typeof import("../../plugins/apollo.js")>
+  InjectionType<typeof import("../../plugins/apollo.js")> &
+  InjectionType<typeof import("../../plugins/pinia.js")>
 
 declare module '#app' {
   interface NuxtApp extends NuxtAppInjections { }

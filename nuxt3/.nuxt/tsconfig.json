@@ -154,6 +154,7 @@
   "exclude": [
     "../dist",
     "../node_modules",
+    "../../node_modules",
     "../node_modules/nuxt/node_modules",
     "../node_modules/@nuxtjs/apollo/runtime/server",
     "../node_modules/@nuxtjs/apollo/dist/runtime/server",

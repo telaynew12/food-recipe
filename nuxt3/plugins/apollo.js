@@ -1,15 +1,21 @@
-import { defineNuxtPlugin } from '#app'
-import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client/core'
 
+import { defineNuxtPlugin } from '#app';
+import { ApolloClient, InMemoryCache } from '@apollo/client/core';
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
+// import createUploadLink from "apollo-upload-client/formDataAppendFile.mjs";
+// import createUploadLink from "apollo-upload-client/isExtractableFile.mjs";
 export default defineNuxtPlugin((nuxtApp) => {
-  // Create an Apollo Client instance
-  const apolloClient = new ApolloClient({
-    cache: new InMemoryCache(),
-    link: new HttpLink({
-      uri: 'http://localhost:8082/v1/graphql', // Replace with your GraphQL server URI
-    }),
-  })
+  const uploadLink = createUploadLink({
+    uri: 'http://localhost:8083/v1/graphql', // Your GraphQL endpoint
+    headers: {
+      'x-hasura-admin-secret': process.env.HASURA_ADMIN_SECRET || 'Telay5870@',
+    },
+  });
 
-  // Inject Apollo Client globally, available as 'apolloClient'
-  nuxtApp.provide('apolloClient', apolloClient)
-})
+  const apolloClient = new ApolloClient({
+    link: uploadLink, // Use the upload link for file handling
+    cache: new InMemoryCache(),
+  });
+
+  nuxtApp.provide('apolloClient', apolloClient); // Make Apollo Client available globally
+});

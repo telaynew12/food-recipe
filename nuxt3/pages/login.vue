@@ -55,6 +55,7 @@ import { useApolloClient } from '@vue/apollo-composable';
 import { useRouter } from 'vue-router';
 import gql from 'graphql-tag';
 import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth'; // Pinia store
 
 // Login GraphQL Mutation
 const LOGIN_MUTATION = gql`
@@ -82,13 +83,15 @@ const { value: password } = useField('password');
 const apolloClient = useApolloClient().client;
 const router = useRouter();
 
-// State
-const loginError = ref(null);
-const isAuthenticated = ref(false);
+// Pinia Auth Store
+const auth = useAuthStore();
 
+// State for error handling
+const loginError = ref(null);
 // Form Submit Handler
+
 const submitLogin = handleSubmit(async (values) => {
-  loginError.value = null; // Reset error
+  loginError.value = null; // Reset error message
   console.log("Attempting to login with:", values);
 
   try {
@@ -97,18 +100,31 @@ const submitLogin = handleSubmit(async (values) => {
       variables: { email: values.email, password: values.password },
     });
 
-    console.log("Login successful:", data); // Check response
+    console.log("Login successful:", data); // Handle success
 
+    // Store the token in Pinia
+    auth.setUser({
+      token: data.login.accessToken,
+      userId: data.login.userId,
+      role: data.login.role,
+    });
+
+    // Store token in localStorage (optional)
     localStorage.setItem('token', data.login.accessToken);
-    isAuthenticated.value = true; // Mark user as logged in
 
-    router.push('/dashboard');
+    // Redirect to the dashboard with user ID as query parameter
+   router.push({
+      path: '/',
+      query: { userId: data.login.userId
+
+      },
+     });
   } catch (error) {
     console.error("Login error:", error);
     loginError.value = error.message || 'Login failed';
-    isAuthenticated.value = false;
   }
 });
+
 </script>
 
 <style scoped>

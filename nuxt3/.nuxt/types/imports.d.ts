@@ -18,6 +18,7 @@ declare global {
   const defineNuxtLink: typeof import('../../node_modules/nuxt/dist/app/components/nuxt-link')['defineNuxtLink']
   const defineNuxtPlugin: typeof import('../../node_modules/nuxt/dist/app/nuxt')['defineNuxtPlugin']
   const defineNuxtRouteMiddleware: typeof import('../../node_modules/nuxt/dist/app/composables/router')['defineNuxtRouteMiddleware']
+  const definePageMeta: typeof import('../../node_modules/nuxt/dist/pages/runtime/composables')['definePageMeta']
   const definePayloadPlugin: typeof import('../../node_modules/nuxt/dist/app/nuxt')['definePayloadPlugin']
   const definePayloadReducer: typeof import('../../node_modules/nuxt/dist/app/composables/payload')['definePayloadReducer']
   const definePayloadReviver: typeof import('../../node_modules/nuxt/dist/app/composables/payload')['definePayloadReviver']
@@ -27,6 +28,7 @@ declare global {
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const getRouteRules: typeof import('../../node_modules/nuxt/dist/app/composables/manifest')['getRouteRules']
+  const gql: typeof import('../../node_modules/graphql-tag/main')['gql']
   const h: typeof import('vue')['h']
   const hasInjectionContext: typeof import('vue')['hasInjectionContext']
   const inject: typeof import('vue')['inject']
@@ -92,8 +94,11 @@ declare global {
   const tryUseNuxtApp: typeof import('../../node_modules/nuxt/dist/app/nuxt')['tryUseNuxtApp']
   const unref: typeof import('vue')['unref']
   const updateAppConfig: typeof import('../../node_modules/nuxt/dist/app/config')['updateAppConfig']
+  const useApollo: typeof import('../../node_modules/@nuxtjs/apollo/dist/runtime/composables')['useApollo']
+  const useApolloClient: typeof import('@vue/apollo-composable')['useApolloClient']
   const useAppConfig: typeof import('../../node_modules/nuxt/dist/app/config')['useAppConfig']
   const useAsyncData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useAsyncData']
+  const useAsyncQuery: typeof import('../../node_modules/@nuxtjs/apollo/dist/runtime/composables')['useAsyncQuery']
   const useAttrs: typeof import('vue')['useAttrs']
   const useAuth: typeof import('../../composables/useAuth')['useAuth']
   const useCookie: typeof import('../../node_modules/nuxt/dist/app/composables/cookie')['useCookie']
@@ -101,17 +106,28 @@ declare global {
   const useCssVars: typeof import('vue')['useCssVars']
   const useError: typeof import('../../node_modules/nuxt/dist/app/composables/error')['useError']
   const useFetch: typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useFetch']
+  const useGlobalMutationLoading: typeof import('@vue/apollo-composable')['useGlobalMutationLoading']
+  const useGlobalQueryLoading: typeof import('@vue/apollo-composable')['useGlobalQueryLoading']
+  const useGlobalSubscriptionLoading: typeof import('@vue/apollo-composable')['useGlobalSubscriptionLoading']
   const useHead: typeof import('../../node_modules/@unhead/vue')['useHead']
   const useHeadSafe: typeof import('../../node_modules/@unhead/vue')['useHeadSafe']
   const useHydration: typeof import('../../node_modules/nuxt/dist/app/composables/hydrate')['useHydration']
   const useId: typeof import('vue')['useId']
   const useLazyAsyncData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useLazyAsyncData']
+  const useLazyAsyncQuery: typeof import('../../node_modules/@nuxtjs/apollo/dist/runtime/composables')['useLazyAsyncQuery']
   const useLazyFetch: typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useLazyFetch']
+  const useLazyQuery: typeof import('@vue/apollo-composable')['useLazyQuery']
+  const useLink: typeof import('vue-router')['useLink']
   const useLoadingIndicator: typeof import('../../node_modules/nuxt/dist/app/composables/loading-indicator')['useLoadingIndicator']
   const useModel: typeof import('vue')['useModel']
+  const useMutation: typeof import('@vue/apollo-composable')['useMutation']
+  const useMutationLoading: typeof import('@vue/apollo-composable')['useMutationLoading']
   const useNuxtApp: typeof import('../../node_modules/nuxt/dist/app/nuxt')['useNuxtApp']
   const useNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']
+  const useNuxtDevTools: typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']
   const usePreviewMode: typeof import('../../node_modules/nuxt/dist/app/composables/preview')['usePreviewMode']
+  const useQuery: typeof import('@vue/apollo-composable')['useQuery']
+  const useQueryLoading: typeof import('@vue/apollo-composable')['useQueryLoading']
   const useRequestEvent: typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['useRequestEvent']
   const useRequestFetch: typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['useRequestFetch']
   const useRequestHeader: typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['useRequestHeader']
@@ -154,6 +170,8 @@ declare global {
   const useShadowRoot: typeof import('vue')['useShadowRoot']
   const useSlots: typeof import('vue')['useSlots']
   const useState: typeof import('../../node_modules/nuxt/dist/app/composables/state')['useState']
+  const useSubscription: typeof import('@vue/apollo-composable')['useSubscription']
+  const useSubscriptionLoading: typeof import('@vue/apollo-composable')['useSubscriptionLoading']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
   const useTransitionState: typeof import('vue')['useTransitionState']
   const watch: typeof import('vue')['watch']
@@ -194,6 +212,7 @@ declare module 'vue' {
     readonly defineNuxtLink: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/components/nuxt-link')['defineNuxtLink']>
     readonly defineNuxtPlugin: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['defineNuxtPlugin']>
     readonly defineNuxtRouteMiddleware: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/router')['defineNuxtRouteMiddleware']>
+    readonly definePageMeta: UnwrapRef<typeof import('../../node_modules/nuxt/dist/pages/runtime/composables')['definePageMeta']>
     readonly definePayloadPlugin: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['definePayloadPlugin']>
     readonly definePayloadReducer: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/payload')['definePayloadReducer']>
     readonly definePayloadReviver: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/payload')['definePayloadReviver']>
@@ -203,6 +222,7 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getRouteRules: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/manifest')['getRouteRules']>
+    readonly gql: UnwrapRef<typeof import('../../node_modules/graphql-tag/main')['gql']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hasInjectionContext: UnwrapRef<typeof import('vue')['hasInjectionContext']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
@@ -268,8 +288,11 @@ declare module 'vue' {
     readonly tryUseNuxtApp: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['tryUseNuxtApp']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly updateAppConfig: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/config')['updateAppConfig']>
+    readonly useApollo: UnwrapRef<typeof import('../../node_modules/@nuxtjs/apollo/dist/runtime/composables')['useApollo']>
+    readonly useApolloClient: UnwrapRef<typeof import('@vue/apollo-composable')['useApolloClient']>
     readonly useAppConfig: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/config')['useAppConfig']>
     readonly useAsyncData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useAsyncData']>
+    readonly useAsyncQuery: UnwrapRef<typeof import('../../node_modules/@nuxtjs/apollo/dist/runtime/composables')['useAsyncQuery']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useAuth: UnwrapRef<typeof import('../../composables/useAuth')['useAuth']>
     readonly useCookie: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/cookie')['useCookie']>
@@ -277,17 +300,28 @@ declare module 'vue' {
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
     readonly useError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['useError']>
     readonly useFetch: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useFetch']>
+    readonly useGlobalMutationLoading: UnwrapRef<typeof import('@vue/apollo-composable')['useGlobalMutationLoading']>
+    readonly useGlobalQueryLoading: UnwrapRef<typeof import('@vue/apollo-composable')['useGlobalQueryLoading']>
+    readonly useGlobalSubscriptionLoading: UnwrapRef<typeof import('@vue/apollo-composable')['useGlobalSubscriptionLoading']>
     readonly useHead: UnwrapRef<typeof import('../../node_modules/@unhead/vue')['useHead']>
     readonly useHeadSafe: UnwrapRef<typeof import('../../node_modules/@unhead/vue')['useHeadSafe']>
     readonly useHydration: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/hydrate')['useHydration']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useLazyAsyncData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useLazyAsyncData']>
+    readonly useLazyAsyncQuery: UnwrapRef<typeof import('../../node_modules/@nuxtjs/apollo/dist/runtime/composables')['useLazyAsyncQuery']>
     readonly useLazyFetch: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useLazyFetch']>
+    readonly useLazyQuery: UnwrapRef<typeof import('@vue/apollo-composable')['useLazyQuery']>
+    readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useLoadingIndicator: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/loading-indicator')['useLoadingIndicator']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
+    readonly useMutation: UnwrapRef<typeof import('@vue/apollo-composable')['useMutation']>
+    readonly useMutationLoading: UnwrapRef<typeof import('@vue/apollo-composable')['useMutationLoading']>
     readonly useNuxtApp: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['useNuxtApp']>
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
+    readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
     readonly usePreviewMode: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preview')['usePreviewMode']>
+    readonly useQuery: UnwrapRef<typeof import('@vue/apollo-composable')['useQuery']>
+    readonly useQueryLoading: UnwrapRef<typeof import('@vue/apollo-composable')['useQueryLoading']>
     readonly useRequestEvent: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['useRequestEvent']>
     readonly useRequestFetch: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['useRequestFetch']>
     readonly useRequestHeader: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['useRequestHeader']>
@@ -330,6 +364,8 @@ declare module 'vue' {
     readonly useShadowRoot: UnwrapRef<typeof import('vue')['useShadowRoot']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useState: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/state')['useState']>
+    readonly useSubscription: UnwrapRef<typeof import('@vue/apollo-composable')['useSubscription']>
+    readonly useSubscriptionLoading: UnwrapRef<typeof import('@vue/apollo-composable')['useSubscriptionLoading']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useTransitionState: UnwrapRef<typeof import('vue')['useTransitionState']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>

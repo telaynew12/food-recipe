@@ -12,7 +12,7 @@ export default defineNuxtConfig({
   apollo: {
     clients: {
       default: {
-        httpEndpoint: 'http://localhost:8082/v1/graphql',
+        httpEndpoint: 'http://localhost:8083/v1/graphql',
         // Include the Admin Secret in the headers
         httpLinkOptions: {
           headers: {
