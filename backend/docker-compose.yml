@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: 123456
       POSTGRES_DB: uog
     ports:
-      - "5440:5432"
+      - "5431:5432"
 
   hasura:
     image: hasura/graphql-engine:latest

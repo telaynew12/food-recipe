@@ -190,6 +190,7 @@ const form = ref({
   ingredients: [{ name: "", quantity: "" }],
   steps: [{ step_number: 1, description: "" }],
   images: [{ image_url: "", is_featured: false }],
+  shares: [{ is_shared: false }], // Adjusted for compatibility
 });
 
 const categories = ref([]);
@@ -318,41 +319,37 @@ const submitRecipe = async () => {
         },
         steps: {
           data: form.value.steps.map(({ step_number, description }) => ({
-            step_number: parseInt(step_number, 10),
+            step_number,
             description,
           })),
         },
-        images: {
-          data: form.value.images.map(({ image_url, is_featured }) => ({
-            image_url,
-            is_featured,
-          })),
+        shares: {
+          data: form.value.shares.map(({ is_shared }) => ({ is_shared })),
         },
       },
     };
 
-    const { data } = await client.mutate({ mutation, variables });
-    recipeId = data.insert_recipes_one.id;
-    successMessage.value = `Recipe "${data.insert_recipes_one.title}" added successfully!`;
-    resetForm();
+    const { data } = await client.mutate({
+      mutation,
+      variables,
+    });
+    recipeId = data.insert_recipes_one.id
+     successMessage.value = `Recipe "${data.insert_recipes_one.title}" added successfully!`;
+    form.value = {
+      title: "",
+      description: "",
+      category_id: "",
+      user_id: "",
+      preparation_time: "",
+      ingredients: [{ name: "", quantity: "" }],
+      steps: [{ step_number: 1, description: "" }],
+      images: [{ image_url: "", is_featured: false }],
+    
+    };
   } catch (error) {
     console.error("Failed to submit recipe:", error);
     errorMessage.value = "Failed to submit recipe. Please try again.";
   }
-};
-
-const resetForm = () => {
-  form.value = {
-    title: "",
-    description: "",
-    category_id: "",
-    user_id: form.value.user_id,
-    preparation_time: "",
-    ingredients: [{ name: "", quantity: "" }],
-    steps: [{ step_number: 1, description: "" }],
-    images: [{ image_url: "", is_featured: false }],
-  };
-  selectedCategory.value = "";
 };
 
 // GraphQL mutation for file upload
