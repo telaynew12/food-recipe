@@ -41,7 +41,7 @@
           </ol>
         </div>
 
-        <!-- Edit and Delete Buttons -->
+        <!-- Edit,Share and Delete Buttons -->
         <div class="absolute top-4 right-4 flex gap-2">
           <button
             @click="startEditing(recipe)"
@@ -55,7 +55,11 @@
           >
             Delete
           </button>
-          <button @click="toggleShareStatus(recipe.id, recipe.share_statuses[0]?.is_shared)"   > share</button>
+
+          <button @click="toggleShareStatus(recipe.id)"
+          class="px-4 py-2 bg-green-500 text-white rounded-md">
+           share
+       </button>
         </div>
       </div>
     </div>
@@ -238,9 +242,30 @@ const UPDATE_RECIPE_MUTATION = gql`
       title
       description
       preparation_time
+            ingredients {
+        id
+        name
+        quantity
+      }
+      steps {
+        id
+        step_number
+        description
+      }
     }
   }
 `;
+const share_mutaion = gql`
+  mutation shares($recipe_id: uuid!) {
+  update_shares(
+    where: { recipe_id: { _eq: $recipe_id } }
+    _set: { is_shared: true }
+  ) {
+    affected_rows
+  }
+}
+`;
+
 
 const getImageUrl = (path) => {
   return path ? `${backendBaseUrl}${path}` : null;
@@ -297,6 +322,25 @@ const updateRecipe = async () => {
     alert('Failed to update the recipe.');
   }
 };
+
+
+const toggleShareStatus = async (shareid) => {
+  console.log("Sharing recipe ID:", shareid);
+  try {
+    await $apolloClient.mutate({
+      mutation: share_mutaion,
+      variables: { recipe_id: shareid },
+    });
+    alert("Recipe shared successfully!");
+  } catch (err) {
+    alert("Failed to share the recipe.");
+    console.error(err);
+  }
+};
+
+
+
+
 
 onMounted(async () => {
   try {

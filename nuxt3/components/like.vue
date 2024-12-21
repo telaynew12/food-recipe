@@ -1,5 +1,3 @@
-
-
 <template>
   <div class="p-6 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
     <!-- Display All Recipes -->
@@ -16,28 +14,30 @@
           class="w-full h-500 object-cover rounded-lg mb-4"
         />
 
-        <!-- Buttons Section -->
+        <!-- Buttons Section (flex container) -->
         <div class="flex justify-start gap-6 mb-4 items-center">
           <!-- Like Button -->
-          <button
-            @click="handleLike(index)"
-            :class="{ 'text-blue-500 font-bold': recipe.liked, 'text-gray-600': !recipe.liked }"
-            class="flex items-center space-x-2"
-          >
-            <span>👍</span>
-            <span>{{ recipe.liked ? 'Liked' : 'Like' }}</span>
-            <span>({{ recipe.likesCount }})</span>
-          </button>
+<!-- Like Button -->
+<button
+  @click="handleLike(index)"
+  :class="{ 'text-blue-500 font-bold': recipe.liked, 'text-gray-600': !recipe.liked }"
+  class="flex items-center space-x-2"
+>
+  <span>👍</span>
+  <span>{{ recipe.liked ? 'liked' : 'Like' }}</span>
+  <span>({{ recipe.likesCount }})</span>
+</button>
 
-          <!-- Comments Button -->
-          <button 
-            @click="toggleComments(index)"
-            class="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
-          >
-            <span>💬</span>
-            <span>Comments</span>
-            <span>({{ recipe.commentsCount }})</span>
-          </button>
+
+<button 
+  @click="toggleComments(index)"
+  class="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+>
+  <span>💬</span>
+  <span>Comments</span>
+  <span>({{ recipe.commentsCount }})</span> <!-- Use commentsCount here -->
+</button>
+
 
           <!-- Bookmark Button -->
           <button
@@ -49,39 +49,39 @@
   <span>{{ recipe.bookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
 </button>
 
+
           <!-- Rating Section -->
           <div class="flex items-center space-x-1">
             <span class="font-semibold">Rate:</span>
-            <div class="flex">
-
-              <span
+  <div class="flex">
+    <span
       v-for="star in 5"
       :key="star"
       :class="{
-        'text-yellow-400': recipe.currentRating >= star,
-        'text-gray-400': recipe.currentRating < star,
+        'text-yellow-400': recipe.rating >= star,
+        'text-gray-400': recipe.rating < star
       }"
       class="cursor-pointer text-2xl"
       @click="handleRating(index, star)"
     >
       ★
     </span>
-            
-  </div>
-  <span class="ml-2 text-sm text-gray-600">({{ recipe.rating.toFixed(1) }} / 5)</span>
-  <span v-if="recipe.hasRated" class="ml-2 text-sm text-green-500">
-    You rated this recipe: {{ recipe.currentRating }}
-  </span>
-          
-</div>
+            </div>
+            <span class="ml-2 text-sm text-gray-600">({{ recipe.rating.toFixed(1) }} / 5)</span>
+          </div>
         </div>
 
         <!-- Comments Section -->
         <div v-if="recipe.showComments" class="mt-4">
           <h3 class="text-lg font-semibold mb-2">Comments</h3>
-          <div v-for="(comment, i) in recipe.comments" :key="i" class="p-2 border-b">
+          <div
+            v-for="(comment, i) in recipe.comments"
+            :key="i"
+            class="p-2 border-b"
+          >
             <p>{{ comment.text }}</p>
           </div>
+          <!-- Add Comment -->
           <div class="mt-2">
             <textarea
               v-model="recipe.newComment"
@@ -106,7 +106,7 @@
 
     <!-- Log In Prompt -->
     <div v-if="!isAuthenticated" class="text-center mt-4">
-      <p>Please log in to like, comment, rate, or bookmark recipes.</p>
+      <p>Please log in to like, comment, rate, or buy recipes.</p>
       <button @click="loginPrompt" class="bg-blue-500 text-white px-4 py-2 rounded mt-2 hover:bg-blue-600">
         Log In
       </button>
@@ -115,13 +115,13 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
 import { ref, onMounted, computed } from 'vue';
 import { useNuxtApp } from '#app';
 import { useAuthStore } from '@/stores/auth'; // Import the auth store
 import gql from 'graphql-tag';
 const router = useRouter();
 const userId = ref('');
+
 
 const { $apolloClient } = useNuxtApp();
 const recipes = ref([]);
@@ -137,9 +137,6 @@ const FETCH_SHARED_RECIPES_QUERY = gql`
       id
       title
       featured_image
-      bookmarks(where: { user_id: { _eq: $userId } }) {
-      user_id
-    }
       ratings_aggregate {
         aggregate {
           avg {
@@ -168,6 +165,7 @@ const FETCH_SHARED_RECIPES_QUERY = gql`
   }
 `;
 
+
 // Helper function to generate the full image URL
 const getImageUrl = (path) => {
   return path ? `${backendBaseUrl}${path}` : null;
@@ -181,40 +179,40 @@ const fetchRecipes = async () => {
       variables: { userId: authStore.user.id },
     });
 
-    recipes.value = response.data.recipes.map((recipe) => {
-      // Find the rating given by the specific user for this recipe
-      const userRating = recipe.user_ratings.length > 0 ? recipe.user_ratings[0].rating : null;
+    recipes.value = response.data.recipes.map((recipe) => ({
+      ...recipe,
+        rating: recipe.ratings_aggregate.aggregate.avg.rating || 0,
 
-      return {
-        ...recipe,
-        bookmarked: recipe.bookmarks.length > 0,
-
-        rating: recipe.ratings_aggregate.aggregate.avg.rating || 0, // The average rating for the recipe
-        likesCount: recipe.likes_aggregate.aggregate.count,
-        liked: recipe.likes.length > 0,
-        bookmarked: false,
-        hasRated: userRating !== null, // If the user has rated this recipe
-        currentRating: userRating || 0, // User's rating for this recipe (default to 0 if not rated)
-        showComments: false,
-        comments: recipe.comments.map((comment) => ({
-          text: comment.comment,
-          created_at: comment.created_at,
-        })),
-        commentsCount: recipe.comments.length,
-        newComment: '',
-      };
-    });
+      likesCount: recipe.likes_aggregate.aggregate.count,
+      liked: recipe.likes.length > 0, // If the user has liked the recipe
+      bookmarked: false,
+      rating: 0,
+      showComments: false,
+      comments: recipe.comments.map((comment) => ({
+        text: comment.comment,
+        created_at: comment.created_at,
+      })),
+      commentsCount: recipe.comments.length, // Store the number of comments
+      newComment: '',
+    }));
   } catch (error) {
     console.error('Error fetching recipes:', error);
   }
 };
 
+
+
 // Login prompt or login action
 const loginPrompt = () => {
-  router.push('/login');
+  // You can redirect to login page, open a modal, or trigger a login function
+  alert('Redirecting to login page...');
+  // Simulate login for now:
+  // On successful login, you should call:
+  // authStore.setUser(user); to store the user and update authentication status.
 };
 
-const handleLike = async (index) => {
+  // Like a Recipe
+  const handleLike = async (index) => {
   if (!isAuthenticated.value) {
     alert('Please log in to like recipes.');
     return;
@@ -281,34 +279,49 @@ const addComment = async (index) => {
   }
 
   const recipe = recipes.value[index];
-  const newComment = recipe.newComment.trim();
-
-  if (newComment) {
+  if (recipe.newComment.trim()) {
     try {
       const response = await $apolloClient.mutate({
         mutation: gql`
           mutation AddComment($recipeId: uuid!, $userId: uuid!, $comment: String!) {
             insert_comments_one(object: { recipe_id: $recipeId, user_id: $userId, comment: $comment }) {
               id
+              comment
+              created_at
             }
           }
         `,
         variables: {
           recipeId: recipe.id,
           userId: authStore.user.id,
-          comment: newComment,
+          comment: recipe.newComment,
         },
       });
 
       if (response.data.insert_comments_one) {
-        recipe.comments.push({ text: newComment, created_at: new Date().toISOString() });
+        // Optionally, add the new comment to the UI directly
+        recipe.comments.push({
+          text: response.data.insert_comments_one.comment,
+          created_at: response.data.insert_comments_one.created_at,
+        });
+        recipe.newComment = ''; // Clear the input field
+        // Update the comment count
         recipe.commentsCount += 1;
-        recipe.newComment = ''; // Reset comment input field
       }
     } catch (error) {
       console.error('Error adding comment:', error);
     }
   }
+};
+
+
+const handleBookmark = (index) => {
+  if (!isAuthenticated.value) {
+    loginPrompt(); // Trigger login if not authenticated
+    return;
+  }
+
+  recipes.value[index].bookmarked = !recipes.value[index].bookmarked;
 };
 
 const handleRating = async (index, selectedRating) => {
@@ -320,25 +333,19 @@ const handleRating = async (index, selectedRating) => {
   const recipe = recipes.value[index];
 
   try {
+    // GraphQL mutation for inserting or updating a rating
     const response = await $apolloClient.mutate({
       mutation: gql`
         mutation UpsertRating($recipeId: uuid!, $userId: uuid!, $rating: numeric!) {
           insert_ratings_one(
             object: { recipe_id: $recipeId, user_id: $userId, rating: $rating }
             on_conflict: {
-              constraint: ratings_recipe_id_user_id_key,
+              constraint: ratings_recipe_id_user_id_key
               update_columns: [rating]
             }
           ) {
-            recipe {
-              ratings_aggregate {
-                aggregate {
-                  avg {
-                    rating
-                  }
-                }
-              }
-            }
+            id
+            rating
           }
         }
       `,
@@ -349,14 +356,9 @@ const handleRating = async (index, selectedRating) => {
       },
     });
 
-    // Update frontend state
     if (response.data.insert_ratings_one) {
-      const updatedAvgRating =
-        response.data.insert_ratings_one.recipe.ratings_aggregate.aggregate.avg.rating;
-
-      recipe.rating = updatedAvgRating || 0; // Update average rating
-      recipe.hasRated = true; // Mark as rated
-      recipe.currentRating = selectedRating; // Update user's specific rating
+      // Update the recipe's rating in the UI
+      recipe.rating = selectedRating;
     }
   } catch (error) {
     console.error('Error updating rating:', error);
@@ -364,54 +366,16 @@ const handleRating = async (index, selectedRating) => {
 };
 
 
-const handleBookmark = async (index) => {
+const handleBuy = (title) => {
   if (!isAuthenticated.value) {
-    alert('Please log in to bookmark recipes.');
+    loginPrompt(); // Trigger login if not authenticated
     return;
   }
 
-  const recipe = recipes.value[index];
-
-  try {
-    if (!recipe.bookmarked) {
-      // Add bookmark
-      const response = await $apolloClient.mutate({
-        mutation: gql`
-          mutation AddBookmark($recipeId: uuid!, $userId: uuid!) {
-            insert_bookmarks_one(object: { recipe_id: $recipeId, user_id: $userId }) {
-              id
-            }
-          }
-        `,
-        variables: { recipeId: recipe.id, userId: authStore.user.id },
-      });
-
-      if (response.data.insert_bookmarks_one) {
-        recipe.bookmarked = true;
-      }
-    } else {
-      // Remove bookmark
-      const response = await $apolloClient.mutate({
-        mutation: gql`
-          mutation RemoveBookmark($recipeId: uuid!, $userId: uuid!) {
-            delete_bookmarks(
-              where: { recipe_id: { _eq: $recipeId }, user_id: { _eq: $userId } }
-            ) {
-              affected_rows
-            }
-          }
-        `,
-        variables: { recipeId: recipe.id, userId: authStore.user.id },
-      });
-
-      if (response.data.delete_bookmarks.affected_rows > 0) {
-        recipe.bookmarked = false;
-      }
-    }
-  } catch (error) {
-    console.error('Error toggling bookmark:', error);
-  }
+  alert(`Redirecting to purchase page for "${title}"...`);
 };
+
+// Fetch recipes when the component is mounted
 
 
 onMounted(async () => {
@@ -432,15 +396,21 @@ onMounted(async () => {
 
     userId.value = decodedToken.userId;
     authStore.setUser({ id: userId.value }); // Sync with the auth store
-    if (isAuthenticated.value) {
-      await fetchRecipes();
-  }
-   
+
+    await fetchRecipes();
   } catch (error) {
     console.error('Error during setup:', error);
   }
 });
 
+
+
+
+
+const login = (user) => {
+  authStore.setUser(user); // Ensure this function updates the store with user details
+  userId.value = user.id; // Sync `userId` ref
+};
 
 
 

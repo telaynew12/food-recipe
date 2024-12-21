@@ -53,7 +53,6 @@
           <div class="flex items-center space-x-1">
             <span class="font-semibold">Rate:</span>
             <div class="flex">
-
               <span
       v-for="star in 5"
       :key="star"
@@ -72,8 +71,7 @@
   <span v-if="recipe.hasRated" class="ml-2 text-sm text-green-500">
     You rated this recipe: {{ recipe.currentRating }}
   </span>
-          
-</div>
+          </div>
         </div>
 
         <!-- Comments Section -->

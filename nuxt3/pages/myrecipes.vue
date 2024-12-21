@@ -1,28 +1,30 @@
 <template>
   <div>
     <h1 class="text-2xl font-bold mb-4">My Recipes</h1>
-    <div v-if="loading" class="text-gray-500">Loading...</div>
-    <div v-else-if="error" class="text-red-500">Error: {{ error }}</div>
+    <div v-if="loading" class="text-gray-500  ">Loading...</div>
+    <div v-else-if="error" class="text-red-500">Error: {{ error.message }}</div>
     <div v-else>
       <div
         v-for="recipe in recipes"
         :key="recipe.id"
-        class="border rounded-lg p-4 mb-4 shadow-sm relative"
+        class="border rounded-lg p-4 mb-4 mt-[80px] shadow-sm relative"
       >
         <h2 class="text-xl font-semibold">{{ recipe.title }}</h2>
-        <p class="text-gray-600">{{ recipe.description }}</p>
-        <p class="text-sm text-gray-500">
-          Preparation Time: {{ recipe.preparation_time }} mins
-        </p>
-        <p class="text-sm text-gray-500">
-          Category: {{ recipe.category.name }}
-        </p>
+
         <img
           v-if="recipe.featured_image"
           :src="getImageUrl(recipe.featured_image)"
           alt="Recipe Image"
           class="w-[1000px] h-[500px] object-cover rounded-lg mt-2"
         />
+        <p class="text-gray-600">{{ recipe.description }}</p>
+
+        <p class="text-sm text-gray-500">
+          Preparation Time: {{ recipe.preparation_time }} mins
+        </p>
+        <p class="text-sm text-gray-500">
+          Category: {{ recipe.category.name }}
+        </p>
         <div class="mt-4">
           <h3 class="font-semibold">Ingredients:</h3>
           <ul class="list-disc list-inside">
@@ -40,9 +42,10 @@
           </ol>
         </div>
 
-         <div class="absolute top-4 right-4 flex gap-2">
+        <!-- Edit,Share and Delete Buttons -->
+        <div class="absolute top-40 right-80 flex flex-col space-y-2 gap-2">
           <button
-            @click="navigateTo('/editrecipes')"
+            @click="startEditing(recipe)"
             class="px-4 py-2 bg-blue-500 text-white rounded-md"
           >
             Edit
@@ -53,11 +56,23 @@
           >
             Delete
           </button>
+
+          <button @click="toggleShareStatus(recipe.id)"
+          class="px-4 py-2 bg-green-500 text-white rounded-md">
+           share
+       </button>
+       <button
+  @click="toggleUnshareStatus(recipe.id)"
+  class="px-4 py-2 bg-gray-500 text-white rounded-md"
+>
+  Unshare
+</button>
+
         </div>
-        <!--
       </div>
     </div>
 
+    <!-- Edit Recipe Modal -->
     <div
       v-if="editingRecipe"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
@@ -88,7 +103,6 @@
               type="number"
             />
           </div>
-
           <div class="mb-4">
             <h3 class="font-semibold">Ingredients</h3>
             <div
@@ -141,7 +155,7 @@
               <textarea
                 v-model="step.description"
                 class="border rounded-md p-2 w-3/4"
-                placehold er="Step Description"
+                placeholder="Description"
               ></textarea>
               <button
                 type="button"
@@ -174,12 +188,11 @@
             >
               Cancel
             </button>
-          </div> 
+          </div>
         </form>
-      -->
       </div>
     </div>
-  </div> 
+  </div>
 </template>
 
 <script setup>
@@ -187,30 +200,15 @@ import { ref, onMounted } from 'vue';
 import { gql } from '@apollo/client/core';
 import { useNuxtApp } from '#app';
 
+const userId = ref('');
 const recipes = ref([]);
 const editingRecipe = ref(null);
 const loading = ref(true);
 const error = ref(null);
-let userId = ''; // Initially empty
 
 const { $apolloClient } = useNuxtApp();
-const backendBaseUrl = 'http://localhost:8085';
 
-// Fetch the logged-in user's ID from the token
-const fetchUserIdFromToken = () => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        userId = decodedToken.userId;
-      } catch (error) {
-        console.error("Failed to decode token", error);
-        error.value = "Invalid token. Please log in again.";
-      }
-    }
-  }
-};
+const backendBaseUrl = 'http://localhost:8085'; // Adjust according to your backend URL
 
 const FETCH_RECIPES_QUERY = gql`
   query FetchRecipes($userId: uuid!) {
@@ -237,19 +235,22 @@ const FETCH_RECIPES_QUERY = gql`
   }
 `;
 
-const EDIT_RECIPE_MUTATION = gql`
-  mutation EditRecipe(
-    $id: uuid!
-    $input: recipes_set_input!
-    $ingredients: [ingredients_insert_input!]!
-    $steps: [steps_insert_input!]!
-  ) {
+const DELETE_RECIPE_MUTATION = gql`
+  mutation DeleteRecipe($id: uuid!) {
+    delete_recipes_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
+const UPDATE_RECIPE_MUTATION = gql`
+  mutation UpdateRecipe($id: uuid!, $input: recipes_set_input!) {
     update_recipes_by_pk(pk_columns: { id: $id }, _set: $input) {
       id
       title
       description
       preparation_time
-      ingredients {
+            ingredients {
         id
         name
         quantity
@@ -260,109 +261,142 @@ const EDIT_RECIPE_MUTATION = gql`
         description
       }
     }
-    delete_ingredients(where: { recipe_id: { _eq: $id } })
-    insert_ingredients(objects: $ingredients) {
-      returning {
-        id
-        name
-        quantity
-      }
-    }
-    delete_steps(where: { recipe_id: { _eq: $id } })
-    insert_steps(objects: $steps) {
-      returning {
-        id
-        step_number
-        description
-      }
+  }
+`;
+const share_mutaion = gql`
+  mutation shares($recipe_id: uuid!) {
+  update_shares(
+    where: { recipe_id: { _eq: $recipe_id } }
+    _set: { is_shared: true }
+  ) {
+    affected_rows
+  }
+}
+`;
+
+const unshare_mutaion = gql`
+  mutation unshare($recipe_id: uuid!) {
+    update_shares(
+      where: { recipe_id: { _eq: $recipe_id } }
+      _set: { is_shared: false }
+    ) {
+      affected_rows
     }
   }
 `;
 
 const getImageUrl = (path) => {
-  return path ? `${backendBaseUrl}${path}` : 'default-image.jpg';
+  return path ? `${backendBaseUrl}${path}` : null;
 };
 
 const fetchRecipes = async () => {
   try {
-    await fetchUserIdFromToken(); // Ensure user ID is fetched
+    loading.value = true;
     const response = await $apolloClient.query({
       query: FETCH_RECIPES_QUERY,
-      variables: { userId },
+      variables: { userId: userId.value },
     });
     recipes.value = response.data.recipes;
+    error.value = null; // Clear any previous error
   } catch (err) {
-    error.value = err.message;
+    error.value = err;
   } finally {
     loading.value = false;
   }
 };
 
+const deleteRecipe = async (id) => {
+  if (confirm('Are you sure you want to delete this recipe?')) {
+    try {
+      await $apolloClient.mutate({
+        mutation: DELETE_RECIPE_MUTATION,
+        variables: { id },
+      });
+      recipes.value = recipes.value.filter((recipe) => recipe.id !== id);
+    } catch (err) {
+      alert('Failed to delete the recipe.');
+    }
+  }
+};
+
 const startEditing = (recipe) => {
-  editingRecipe.value = structuredClone(recipe);
+  editingRecipe.value = { ...recipe };
 };
 
 const cancelEditing = () => {
   editingRecipe.value = null;
 };
 
-// const updateRecipe = async () => {
-//   if (!editingRecipe.value) return;
+const updateRecipe = async () => {
+  try {
+    const { id, title, description, preparation_time } = editingRecipe.value;
+    await $apolloClient.mutate({
+      mutation: UPDATE_RECIPE_MUTATION,
+      variables: { id, input: { title, description, preparation_time } },
+    });
+    fetchRecipes();
+    editingRecipe.value = null;
+  } catch (err) {
+    alert('Failed to update the recipe.');
+  }
+};
 
-//   try {
-//     const variables = {
-//       id: editingRecipe.value.id,
-//       input: {
-//         title: editingRecipe.value.title,
-//         description: editingRecipe.value.description,
-//         preparation_time: editingRecipe.value.preparation_time,
-//       },
-//       ingredients: editingRecipe.value.ingredients.map((ingredient) => ({
-//         id: ingredient.id || null,
-//         recipe_id: editingRecipe.value.id,
-//         name: ingredient.name,
-//         quantity: ingredient.quantity,
-//       })),
-//       steps: editingRecipe.value.steps.map((step) => ({
-//         id: step.id || null,
-//         recipe_id: editingRecipe.value.id,
-//         step_number: parseInt(step.step_number, 10),
-//         description: step.description,
-//       })),
-//     };
 
-//     await $apolloClient.mutate({
-//       mutation: EDIT_RECIPE_MUTATION,
-//       variables,
-//     });
+const toggleShareStatus = async (shareid) => {
+  console.log("Sharing recipe ID:", shareid);
+  try {
+    await $apolloClient.mutate({
+      mutation: share_mutaion,
+      variables: { recipe_id: shareid },
+    });
+    alert("Recipe shared successfully!");
+  } catch (err) {
+    alert("Failed to share the recipe.");
+    console.error(err);
+  }
+};
 
-//     await fetchRecipes(); // Refetch to sync
-//     cancelEditing();
-//   } catch (err) {
-//     console.error('Update Recipe Error:', err);
-//     alert('Failed to update the recipe. Check console for details.');
-//   }
-// };
+const toggleUnshareStatus = async (recipeId) => {
+  console.log("Unsharing recipe ID:", recipeId);
+  try {
+    await $apolloClient.mutate({
+      mutation: unshare_mutaion,
+      variables: { recipe_id: recipeId },
+    });
+    alert("Recipe unshared successfully!");
+    // Optional: Refresh recipes to reflect changes
+    await fetchRecipes();
+  } catch (err) {
+    alert("Failed to unshare the recipe.");
+    console.error(err);
+  }
+};
 
-// const addIngredient = () => {
-//   editingRecipe.value.ingredients.push({ id: null, name: '', quantity: '' });
-// };
 
-// const removeIngredient = (index) => {
-//   editingRecipe.value.ingredients.splice(index, 1);
-// };
 
-// const addStep = () => {
-//   editingRecipe.value.steps.push({ id: null, step_number: '', description: '' });
-// };
 
-// const removeStep = (index) => {
-//   editingRecipe.value.steps.splice(index, 1);
-// };
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token');
 
-onMounted(fetchRecipes);
+    if (token) {
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
+      userId.value = decodedToken.userId;
+    } else {
+      throw new Error('Token not found. Please log in again.');
+    }
+
+    if (!userId.value) {
+      throw new Error('User ID not found. Please log in again.');
+    }
+
+    await fetchRecipes();
+  } catch (err) {
+    error.value = err;
+    console.error(err.message);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
-<style scoped>
-/* Add any additional styling */
-</style>

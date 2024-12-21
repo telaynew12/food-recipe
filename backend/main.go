@@ -16,7 +16,7 @@ import (
 // connectToDatabase establishes a connection to the PostgreSQL database
 func connectToDatabase() (*sql.DB, error) {
 	dbHost := "localhost"
-	dbPort := "5440"
+	dbPort := "5431"
 	dbUser := "telay"
 	dbPassword := "123456"
 	dbName := "uog"
