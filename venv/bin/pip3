@@ -1,4 +1,6 @@
-#!/home/mikias/Downloads/Food_recipe/venv/bin/python3
+#!/bin/sh
+'''exec' "/home/mikias/MyFiles/Projects/Personal/SideProjects/ my food recipe/venv/bin/python3" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys
