@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from  pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from app import payment
+from app.payment import Payment
 
 app = FastAPI()
 app.add_middleware(
@@ -29,7 +29,7 @@ class Payit(BaseModel):
 
 @app.post('/pay')
 def pay(payit: Payit):
-    data = payment.pay(email=payit.email, fname=payit.fname,
+    data = Payment.pay(email=payit.email, fname=payit.fname,
                        lname=payit.lname, amount=payit.amount, rdurl=payit.rdurl)
     return data
 
@@ -40,5 +40,5 @@ class Txnum(BaseModel):
 
 @app.post('/verify')
 def verify(txnum: Txnum):
-    ver = payment.verify(tx_num=txnum.ref_num)
+    ver = Payment.verify(tx_num=txnum.ref_num)
     return ver

@@ -7,7 +7,7 @@ key_api = 'CHASECK_TEST-GdLwnDgIq11gkolK98FSWSjgJSMSamrY'
 chapa = Chapa(key_api)
 
 
-class payment():
+class Payment():
     def pay(email, fname, lname, amount, rdurl):
         now = datetime.now()
         tx_un_num = now.strftime("%m%d%Y%H%M%S")
