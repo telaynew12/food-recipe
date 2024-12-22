@@ -1,17 +1,21 @@
 from chapa import Chapa
 from datetime import datetime
 
+# Initialize Chapa with the API key
 key_api = 'CHASECK_TEST-GdLwnDgIq11gkolK98FSWSjgJSMSamrY'
-
-
 chapa = Chapa(key_api)
 
-
-class Payment():
+class Payment:
+    @staticmethod
     def pay(email, fname, lname, amount, rdurl):
+        """
+        Initiates the payment process with Chapa.
+        """
         now = datetime.now()
         tx_un_num = now.strftime("%m%d%Y%H%M%S")
         tx_id = f'tx_{fname}{tx_un_num}'
+        
+        # Data for the payment request
         data = {
             'email': email,
             'amount': amount,
@@ -25,12 +29,14 @@ class Payment():
             }
         }
 
+        # Initialize payment and return the response
         response = chapa.initialize(**data)
         return {'detail': response, 'tx_id': tx_id}
-        # print(response)
 
+    @staticmethod
     def verify(tx_num):
-        # # How to verify a transaction
+        """
+        Verifies the payment with Chapa.
+        """
         response = chapa.verify(tx_num)
-        # print(response)
         return response
