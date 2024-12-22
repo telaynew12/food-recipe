@@ -48,6 +48,13 @@
   <span>🔖</span>
   <span>{{ recipe.bookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
 </button>
+<button
+  @click="redirectToPaymentPage(recipe)"
+  class="bg-green-500 text-white text-sm font-semibold px-3 py-1 rounded-full transition duration-200 hover:bg-green-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400"
+>
+  Buy Recipe
+</button>
+
 
           <!-- Rating Section -->
           <div class="flex items-center space-x-1">
@@ -130,6 +137,15 @@ const authStore = useAuthStore(); // Access auth store
 const isAuthenticated = computed(() => authStore.isAuthenticated); // Reactive check for authentication
 
 const backendBaseUrl = 'http://localhost:8085/';
+const redirectToPaymentPage = (recipe) => {
+  if (!isAuthenticated.value) {
+    alert('Please log in to proceed with the purchase.');
+    return;
+  }
+
+  // You can pass the recipe details or id to the payment page
+  router.push({ name: 'payment', query: { recipeId: recipe.id } });
+};
 
 const FETCH_SHARED_RECIPES_QUERY = gql`
   query FetchSharedRecipes($userId: uuid!) {
