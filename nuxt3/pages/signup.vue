@@ -53,6 +53,13 @@
         </button>
       </div>
     </form>
+        <!-- Login Link -->
+    <p v-if="!userVerified" class="text-center text-gray-600 mt-4">
+      Already have an account? 
+      <router-link to="/login" class="text-blue-500 hover:underline">
+        Login here
+      </router-link>
+    </p>
 
     <!-- Verification Form -->
     <form v-if="verificationPending" @submit.prevent="onVerify" class="space-y-4">
@@ -90,6 +97,8 @@ import { useMutation } from '@vue/apollo-composable'
 import gql from 'graphql-tag'
 import { useForm } from 'vee-validate'
 import * as yup from 'yup'
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 // Form data and states
 const form = ref({
@@ -166,6 +175,8 @@ const onVerify = async () => {
     // Success handling
     message.value = data.verify.message
     verificationPending.value = false // Verification completed, hide the form
+        router.push('/login');
+
   } catch (err) {
     // Handle verification errors
     errors.value.verificationCode = 'Invalid verification code'

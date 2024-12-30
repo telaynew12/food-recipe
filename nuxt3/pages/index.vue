@@ -1,6 +1,9 @@
 <template>
 <NuxtPage />
-here is the homepage
+<div class="bg-red shadow-md fixed w-full z-5 fixed">
+  <Header />
+
+</div>
   <custom />
 </template>
 

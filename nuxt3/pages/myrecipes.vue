@@ -1,16 +1,19 @@
 <template>
-  <div>
+  <div class="container mx-auto py-0 px-4 center">
     <h1 class="text-2xl font-bold mb-4">My Recipes</h1>
-    <div v-if="loading" class="text-gray-500  ">Loading...</div>
+
+    <!-- Search Input -->
+  
+
+    <div v-if="loading" class="text-gray-500">Loading...</div>
     <div v-else-if="error" class="text-red-500">Error: {{ error.message }}</div>
     <div v-else>
       <div
-        v-for="recipe in recipes"
+        v-for="recipe in filteredRecipes"
         :key="recipe.id"
-        class="border rounded-lg p-4 mb-4 mt-[80px] shadow-sm relative"
+        class="border rounded-lg p-4 mb-4 mt-[0px] shadow-sm relative"
       >
         <h2 class="text-xl font-semibold">{{ recipe.title }}</h2>
-
         <img
           v-if="recipe.featured_image"
           :src="getImageUrl(recipe.featured_image)"
@@ -18,13 +21,10 @@
           class="w-[1000px] h-[500px] object-cover rounded-lg mt-2"
         />
         <p class="text-gray-600">{{ recipe.description }}</p>
-
         <p class="text-sm text-gray-500">
           Preparation Time: {{ recipe.preparation_time }} mins
         </p>
-        <p class="text-sm text-gray-500">
-          Category: {{ recipe.category.name }}
-        </p>
+        <p class="text-sm text-gray-500">Category: {{ recipe.category.name }}</p>
         <div class="mt-4">
           <h3 class="font-semibold">Ingredients:</h3>
           <ul class="list-disc list-inside">
@@ -42,7 +42,7 @@
           </ol>
         </div>
 
-        <!-- Edit,Share and Delete Buttons -->
+        <!-- Edit, Share, and Delete Buttons -->
         <div class="absolute top-40 right-80 flex flex-col space-y-2 gap-2">
           <button
             @click="startEditing(recipe)"
@@ -56,17 +56,18 @@
           >
             Delete
           </button>
-
-          <button @click="toggleShareStatus(recipe.id)"
-          class="px-4 py-2 bg-green-500 text-white rounded-md">
-           share
-       </button>
-       <button
-  @click="toggleUnshareStatus(recipe.id)"
-  class="px-4 py-2 bg-gray-500 text-white rounded-md"
->
-  Unshare
-</button>
+          <button
+            @click="toggleShareStatus(recipe.id)"
+            class="px-4 py-2 bg-green-500 text-white rounded-md"
+          >
+            Share
+          </button>
+          <button
+            @click="toggleUnshareStatus(recipe.id)"
+            class="px-4 py-2 bg-gray-500 text-white rounded-md"
+          >
+            Unshare
+          </button>
 
         </div>
       </div>
@@ -196,9 +197,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref,computed, onMounted } from 'vue';
 import { gql } from '@apollo/client/core';
 import { useNuxtApp } from '#app';
+import { useRecipeStore } from '@/stores/recipe';  // Import the Pinia store
+const recipeStore = useRecipeStore(); // Access the store
 
 const userId = ref('');
 const recipes = ref([]);
@@ -207,6 +210,12 @@ const loading = ref(true);
 const error = ref(null);
 
 const { $apolloClient } = useNuxtApp();
+const searchQuery = ref('');
+const filteredRecipes = computed(() => {
+  return recipes.value.filter((recipe) =>
+    recipe.title.toLowerCase().includes(recipeStore.searchQuery.toLowerCase())
+  );
+});
 
 const backendBaseUrl = 'http://localhost:8085'; // Adjust according to your backend URL
 

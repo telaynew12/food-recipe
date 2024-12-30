@@ -1,97 +1,110 @@
-
-
 <template>
-  <div class="p-6 max-w-4xl mx-auto bg-white shadow-md rounded-lg">
+  <div class="w-full h-screen p-6 bg-white shadow-md rounded-lg mt-10 overflow-auto">
     <!-- Display All Recipes -->
-    <div v-if="recipes.length" class="space-y-8">
-      <div v-for="(recipe, index) in recipes" :key="recipe.id" class="border-b pb-6">
-        <!-- Recipe Title -->
-        <h2 class="text-2xl font-bold mb-4">{{ recipe.title }}</h2>
+    <div v-if="filteredRecipes.length" class="space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div
+          v-for="(recipe, index) in filteredRecipes"
+          :key="recipe.id"
+          class="border p-4 rounded-lg shadow-sm"
+        >
+          <!-- Recipe Title -->
+          <h2 class="text-2xl font-bold mb-4">{{ recipe.title }}</h2>
 
-        <!-- Recipe Image -->
-        <img 
-          v-if="recipe.featured_image"
-          :src="getImageUrl(recipe.featured_image)"
-          alt="Recipe Image"
-          class="w-full h-500 object-cover rounded-lg mb-4"
-        />
+          <!-- Recipe Image -->
+          <img
+            v-if="recipe.featured_image"
+            :src="getImageUrl(recipe.featured_image)"
+            alt="Recipe Image"
+            class="w-full h-48 object-cover rounded-lg mb-4"
+          />
 
-        <!-- Buttons Section -->
-        <div class="flex justify-start gap-6 mb-4 items-center">
-          <!-- Like Button -->
-          <button
-            @click="handleLike(index)"
-            :class="{ 'text-blue-500 font-bold': recipe.liked, 'text-gray-600': !recipe.liked }"
-            class="flex items-center space-x-2"
-          >
-            <span>👍</span>
-            <span>{{ recipe.liked ? 'Liked' : 'Like' }}</span>
-            <span>({{ recipe.likesCount }})</span>
-          </button>
+          <!-- Buttons Section -->
+          <div class="flex justify-start gap-6 mb-4 items-center">
+            <!-- Like Button -->
+            <button
+              @click="handleLike(index)"
+              :class="{
+                'text-blue-500 font-bold': recipe.liked,
+                'text-gray-600': !recipe.liked
+              }"
+              class="flex items-center space-x-2"
+            >
+              <span>👍</span>
+              <span>{{ recipe.liked ? 'Liked' : 'Like' }}</span>
+              <span>({{ recipe.likesCount }})</span>
+            </button>
 
-          <!-- Comments Button -->
-          <button 
-            @click="toggleComments(index)"
-            class="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
-          >
-            <span>💬</span>
-            <span>Comments</span>
-            <span>({{ recipe.commentsCount }})</span>
-          </button>
+            <!-- Comments Button -->
+            <button
+              @click="toggleComments(index)"
+              class="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+            >
+              <span>💬</span>
+              <span>Comments</span>
+              <span>({{ recipe.commentsCount }})</span>
+            </button>
 
-          <!-- Bookmark Button -->
-          <button
-  @click="handleBookmark(index)"
-  :class="{ 'text-yellow-500': recipe.bookmarked, 'text-gray-600': !recipe.bookmarked }"
-  class="flex items-center space-x-2"
->
-  <span>🔖</span>
-  <span>{{ recipe.bookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
-</button>
+            <!-- Bookmark Button -->
+            <button
+              @click="toggleBookmark(recipe.id, index)"
+              :class="{
+                'text-yellow-500': recipe.bookmarked,
+                'text-gray-600': !recipe.bookmarked
+              }"
+            >
+              {{ recipe.bookmarked ? 'Bookmarked' : 'Bookmark' }}
+            </button>
+          </div>
 
           <!-- Rating Section -->
-          <div class="flex items-center space-x-1">
+          <div class="flex items-center space-x-1 mb-4">
             <span class="font-semibold">Rate:</span>
             <div class="flex">
               <span
-      v-for="star in 5"
-      :key="star"
-      :class="{
-        'text-yellow-400': recipe.currentRating >= star,
-        'text-gray-400': recipe.currentRating < star,
-      }"
-      class="cursor-pointer text-2xl"
-      @click="handleRating(index, star)"
-    >
-      ★
-    </span>
-            
-  </div>
-  <span class="ml-2 text-sm text-gray-600">({{ recipe.rating.toFixed(1) }} / 5)</span>
-  <span v-if="recipe.hasRated" class="ml-2 text-sm text-green-500">
-    You rated this recipe: {{ recipe.currentRating }}
-  </span>
-          </div>
-        </div>
-
-        <!-- Comments Section -->
-        <div v-if="recipe.showComments" class="mt-4">
-          <h3 class="text-lg font-semibold mb-2">Comments</h3>
-          <div v-for="(comment, i) in recipe.comments" :key="i" class="p-2 border-b">
-            <p>{{ comment.text }}</p>
-          </div>
-          <div class="mt-2">
-            <textarea
-              v-model="recipe.newComment"
-              placeholder="Write a comment..."
-              class="w-full p-2 border rounded"
-            ></textarea>
-            <button
-              @click="addComment(index)"
-              class="bg-blue-500 text-white px-4 py-2 rounded mt-2 hover:bg-blue-600"
+                v-for="star in 5"
+                :key="star"
+                :class="{
+                  'text-yellow-400': recipe.currentRating >= star,
+                  'text-gray-400': recipe.currentRating < star
+                }"
+                class="cursor-pointer text-2xl"
+                @click="handleRating(index, star)"
+              >
+                ★
+              </span>
+            </div>
+            <span
+              v-if="recipe.hasRated"
+              class="ml-2 text-sm text-green-500"
             >
-              Submit Comment
-            </button>
+              You rated this recipe: {{ recipe.currentRating }}
+            </span>
+          </div>
+
+          <!-- Comments Section -->
+          <div v-if="recipe.showComments" class="mt-4">
+            <h3 class="text-lg font-semibold mb-2">Comments</h3>
+            <div
+              v-for="(comment, i) in recipe.comments"
+              :key="i"
+              class="p-2 border-b"
+            >
+              <p>{{ comment.text }}</p>
+            </div>
+            <div class="mt-2">
+              <textarea
+                v-model="recipe.newComment"
+                placeholder="Write a comment..."
+                class="w-full p-2 border rounded"
+              ></textarea>
+              <button
+                @click="addComment(index)"
+                class="bg-blue-500 text-white px-4 py-2 rounded mt-2 hover:bg-blue-600"
+              >
+                Submit Comment
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -105,29 +118,51 @@
     <!-- Log In Prompt -->
     <div v-if="!isAuthenticated" class="text-center mt-4">
       <p>Please log in to like, comment, rate, or bookmark recipes.</p>
-      <button @click="loginPrompt" class="bg-blue-500 text-white px-4 py-2 rounded mt-2 hover:bg-blue-600">
+      <button
+        @click="loginPrompt"
+        class="bg-blue-500 text-white px-4 py-2 rounded mt-2 hover:bg-blue-600"
+      >
         Log In
       </button>
     </div>
   </div>
 </template>
 
+
+
 <script setup>
 import { useRouter } from 'vue-router';
-import { ref, onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useNuxtApp } from '#app';
 import { useAuthStore } from '@/stores/auth'; // Import the auth store
+import { useRecipeStore } from '@/stores/recipe'; // Import the recipe store
 import gql from 'graphql-tag';
+
 const router = useRouter();
 const userId = ref('');
-
 const { $apolloClient } = useNuxtApp();
 const recipes = ref([]);
-const authStore = useAuthStore(); // Access auth store
+const authStore = useAuthStore();
+const recipeStore = useRecipeStore(); // Access the recipe store
 
 const isAuthenticated = computed(() => authStore.isAuthenticated); // Reactive check for authentication
 
 const backendBaseUrl = 'http://localhost:8085/';
+
+const searchQuery = computed({
+  get: () => recipeStore.searchQuery,
+  set: (query) => recipeStore.setSearchQuery(query),
+});
+
+// Computed property for filtered recipes
+const filteredRecipes = computed(() => {
+  const query = searchQuery.value.toLowerCase();
+  return recipes.value.filter((recipe) =>
+    recipe.title.toLowerCase().includes(query)
+  );
+});
+
+
 
 const FETCH_SHARED_RECIPES_QUERY = gql`
   query FetchSharedRecipes($userId: uuid!) {
@@ -135,9 +170,10 @@ const FETCH_SHARED_RECIPES_QUERY = gql`
       id
       title
       featured_image
+      user_id 
       bookmarks(where: { user_id: { _eq: $userId } }) {
-      user_id
-    }
+        user_id
+      }
       ratings_aggregate {
         aggregate {
           avg {
@@ -166,12 +202,10 @@ const FETCH_SHARED_RECIPES_QUERY = gql`
   }
 `;
 
-// Helper function to generate the full image URL
 const getImageUrl = (path) => {
   return path ? `${backendBaseUrl}${path}` : null;
 };
 
-// Fetch shared recipes from the backend
 const fetchRecipes = async () => {
   try {
     const response = await $apolloClient.query({
@@ -180,19 +214,16 @@ const fetchRecipes = async () => {
     });
 
     recipes.value = response.data.recipes.map((recipe) => {
-      // Find the rating given by the specific user for this recipe
       const userRating = recipe.user_ratings.length > 0 ? recipe.user_ratings[0].rating : null;
 
       return {
         ...recipe,
         bookmarked: recipe.bookmarks.length > 0,
-
-        rating: recipe.ratings_aggregate.aggregate.avg.rating || 0, // The average rating for the recipe
+        rating: recipe.ratings_aggregate.aggregate.avg.rating || 0,
         likesCount: recipe.likes_aggregate.aggregate.count,
         liked: recipe.likes.length > 0,
-        bookmarked: false,
-        hasRated: userRating !== null, // If the user has rated this recipe
-        currentRating: userRating || 0, // User's rating for this recipe (default to 0 if not rated)
+        hasRated: userRating !== null,
+        currentRating: userRating || 0,
         showComments: false,
         comments: recipe.comments.map((comment) => ({
           text: comment.comment,
@@ -207,7 +238,6 @@ const fetchRecipes = async () => {
   }
 };
 
-// Login prompt or login action
 const loginPrompt = () => {
   router.push('/login');
 };
@@ -218,11 +248,16 @@ const handleLike = async (index) => {
     return;
   }
 
-  const recipe = recipes.value[index];
+  const recipe = filteredRecipes.value[index]; // Access filtered recipe
+
+  // Check if the logged-in user is the same as the recipe owner
+  if (recipe.user_id === authStore.user.id) {
+    alert('You cannot like your own recipe.');
+    return;
+  }
 
   try {
     if (!recipe.liked) {
-      // Like the recipe
       const response = await $apolloClient.mutate({
         mutation: gql`
           mutation LikeRecipe($recipeId: uuid!, $userId: uuid!) {
@@ -239,7 +274,6 @@ const handleLike = async (index) => {
         recipe.liked = true;
       }
     } else {
-      // Unlike the recipe
       const response = await $apolloClient.mutate({
         mutation: gql`
           mutation UnlikeRecipe($recipeId: uuid!, $userId: uuid!) {
@@ -309,13 +343,23 @@ const addComment = async (index) => {
   }
 };
 
+
+
+
 const handleRating = async (index, selectedRating) => {
   if (!isAuthenticated.value) {
     loginPrompt(); // Trigger login if not authenticated
     return;
   }
 
-  const recipe = recipes.value[index];
+  const recipe = filteredRecipes.value[index];  // Use 
+
+
+    // Check if the logged-in user is the owner of the recipe
+  if (recipe.user_id === authStore.user.id) {
+    alert("You cannot rate your own recipe.");
+    return;
+  }
 
   try {
     const response = await $apolloClient.mutate({
@@ -361,34 +405,36 @@ const handleRating = async (index, selectedRating) => {
   }
 };
 
-
-const handleBookmark = async (index) => {
+const toggleBookmark = async (recipeId, index) => {
   if (!isAuthenticated.value) {
-    alert('Please log in to bookmark recipes.');
+    loginPrompt();
     return;
   }
 
-  const recipe = recipes.value[index];
+  const recipe = filteredRecipes.value[index];  // Use filteredRecipes
+    // Check if the logged-in user is the owner of the recipe
+  if (recipe.user_id === authStore.user.id) {
+    alert("You cannot  bookmark your own recipe.");
+    return;
+  }
 
   try {
     if (!recipe.bookmarked) {
-      // Add bookmark
       const response = await $apolloClient.mutate({
         mutation: gql`
-          mutation AddBookmark($recipeId: uuid!, $userId: uuid!) {
+          mutation BookmarkRecipe($recipeId: uuid!, $userId: uuid!) {
             insert_bookmarks_one(object: { recipe_id: $recipeId, user_id: $userId }) {
               id
             }
           }
         `,
-        variables: { recipeId: recipe.id, userId: authStore.user.id },
+        variables: { recipeId, userId: authStore.user.id },
       });
 
       if (response.data.insert_bookmarks_one) {
         recipe.bookmarked = true;
       }
     } else {
-      // Remove bookmark
       const response = await $apolloClient.mutate({
         mutation: gql`
           mutation RemoveBookmark($recipeId: uuid!, $userId: uuid!) {
@@ -399,7 +445,7 @@ const handleBookmark = async (index) => {
             }
           }
         `,
-        variables: { recipeId: recipe.id, userId: authStore.user.id },
+        variables: { recipeId, userId: authStore.user.id },
       });
 
       if (response.data.delete_bookmarks.affected_rows > 0) {
@@ -410,7 +456,6 @@ const handleBookmark = async (index) => {
     console.error('Error toggling bookmark:', error);
   }
 };
-
 
 onMounted(async () => {
   try {
@@ -438,13 +483,8 @@ onMounted(async () => {
     console.error('Error during setup:', error);
   }
 });
-
-
-
-
-
 </script>
 
 <style scoped>
-/* Add custom styles if needed */
+/* Add any custom styling here */
 </style>

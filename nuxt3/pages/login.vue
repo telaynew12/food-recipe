@@ -44,6 +44,13 @@
           {{ loginError }}
         </div>
       </form>
+          <!-- Login Link -->
+    <p v-if="!userVerified" class="text-center text-gray-600 mt-4">
+      Don't have account? 
+      <router-link to="/signup" class="text-blue-500 hover:underline">
+        Signup here
+      </router-link>
+    </p>
     </div>
   </div>
 </template>
