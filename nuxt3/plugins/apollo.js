@@ -2,6 +2,8 @@
 import { defineNuxtPlugin } from '#app';
 import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs";
+import { createPinia } from 'pinia';
+
 // import createUploadLink from "apollo-upload-client/formDataAppendFile.mjs";
 // import createUploadLink from "apollo-upload-client/isExtractableFile.mjs";
 export default defineNuxtPlugin((nuxtApp) => {

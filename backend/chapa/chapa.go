@@ -1,0 +1,166 @@
+package chapa
+
+import (
+    "encoding/json"
+    "fmt"
+    "math/rand"
+    "net/http"
+    "strings"
+    "time"
+    "database/sql"
+    "io"
+)
+
+// ChapaCallback struct to parse the callback response from Chapa API
+type ChapaCallback struct {
+    Status        string `json:"status"`
+    Amount        int    `json:"amount"`
+    Currency      string `json:"currency"`
+    TransactionID string `json:"tx_ref"` // This is the transaction reference sent by Chapa
+}
+
+// Generate a unique transaction reference
+func generateTxRef() string {
+    rand.Seed(time.Now().UnixNano())
+    randomNumber := rand.Intn(1000000) // Random number for uniqueness
+    return fmt.Sprintf("TX-%d-%d", time.Now().Unix(), randomNumber)
+}
+
+// Payment callback handler - to handle responses from Chapa
+// Payment callback handler - to handle responses from Chapa
+// Payment callback handler - to handle responses from Chapa
+func PaymentCallback(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+    // Parse the callback request from Chapa
+    var callbackData map[string]interface{}
+    err := json.NewDecoder(r.Body).Decode(&callbackData)
+    if err != nil {
+        http.Error(w, "Error parsing callback data", http.StatusBadRequest)
+        return
+    }
+
+    // Extract necessary information from callback data
+    transactionID := callbackData["transaction_id"].(string)
+    status := callbackData["status"].(string)
+    amount := callbackData["amount"].(float64) // Adjust based on response data format
+
+    // Log payment details
+    fmt.Printf("Transaction ID: %s\n", transactionID)
+    fmt.Printf("Payment Status: %s\n", status)
+    fmt.Printf("Amount: %.2f\n", amount)
+
+    // Simulate a delay of 2 minutes (120 seconds) before processing the response
+    time.Sleep(2 * time.Minute)
+
+    // Update the payment status in the database
+    query := `UPDATE payments SET status = $1, amount = $2 WHERE transaction_id = $3`
+    _, err = db.Exec(query, status, amount, transactionID)
+    if err != nil {
+        http.Error(w, "Error updating payment status", http.StatusInternalServerError)
+        return
+    }
+
+    // Respond back to Chapa or frontend with the payment status
+    response := map[string]interface{}{
+        "message": "Payment status updated after 2-minute delay",
+        "status":  "success",
+        "data":    callbackData,
+    }
+    json.NewEncoder(w).Encode(response)
+}
+
+
+
+// Start payment handler to initiate a payment request to Chapa
+func StartPaymentHandler(w http.ResponseWriter, r *http.Request) {
+    txRef := generateTxRef() // Generate a unique tx_ref for the payment
+
+    // Create the payload with the unique tx_ref
+    payload := strings.NewReader(fmt.Sprintf(`{
+        "amount": "100",
+        "currency": "ETB",
+        "email": "telaynew11@gmali.com",
+        "first_name": "Telaynew",
+        "last_name": "Ambachew",
+        "phone_number": "0912345678",
+        "tx_ref": "%s",
+        "callback_url": "http://localhost:8085/payment/callback",
+        "return_url": "http://localhost:3000/payment-success",
+        "customization[title]": "Payment for Your Order",
+        "customization[description]": "Secure and fast payment",
+        "meta[hide_receipt]": "true"
+    }`, txRef))
+
+    // API call to Chapa to initialize payment
+    url := "https://api.chapa.co/v1/transaction/initialize"
+    method := "POST"
+
+    client := &http.Client{}
+    req, err := http.NewRequest(method, url, payload)
+    if err != nil {
+        fmt.Println(err)
+        w.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(w).Encode(map[string]string{
+            "error": "Failed to initiate payment",
+        })
+        return
+    }
+
+    // Replace with your Chapa API secret key
+    req.Header.Add("Authorization", "Bearer CHASECK_TEST-a1qrXW4R2gH74HeebcpDjI9Y7kBTO7k1")
+    req.Header.Add("Content-Type", "application/json")
+
+    res, err := client.Do(req)
+    if err != nil {
+        fmt.Println(err)
+        w.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(w).Encode(map[string]string{
+            "error": "Failed to get response from Chapa",
+        })
+        return
+    }
+    defer res.Body.Close()
+
+    body, err := io.ReadAll(res.Body) // Updated to io.ReadAll
+    if err != nil {
+        fmt.Println(err)
+        w.WriteHeader(http.StatusInternalServerError)
+        json.NewEncoder(w).Encode(map[string]string{
+            "error": "Failed to read Chapa response",
+        })
+        return
+    }
+
+    // Log the response from Chapa (the checkout URL)
+    fmt.Println("Chapa API Response:", string(body))
+
+    // Handle the response and extract the checkout URL
+    var response map[string]interface{}
+    err = json.Unmarshal(body, &response)
+    if err != nil {
+        http.Error(w, "Failed to parse response", http.StatusInternalServerError)
+        return
+    }
+
+    // Extract the checkout URL from the response
+    checkoutURL, ok := response["data"].(map[string]interface{})["checkout_url"].(string)
+    if !ok {
+        http.Error(w, "Checkout URL not found in response", http.StatusInternalServerError)
+        return
+    }
+
+    // Prepare the final response with the desired structure
+    responseData := map[string]interface{}{
+        "message": "Hosted Link",
+        "status":  "success",
+        "data": map[string]interface{}{
+            "checkout_url": checkoutURL,
+        },
+    }
+
+    // Return the response as JSON
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(responseData)
+}
+
+

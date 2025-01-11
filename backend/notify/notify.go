@@ -30,7 +30,7 @@ func sendEmailnotify(email string) error {
 	m.SetHeader("From", "telaynew11@gmail.com")
 	m.SetHeader("To", email)
 	m.SetHeader("Subject", "Registration Successful")
-	m.SetBody("text/plain", "Congratulations! Your registration is now verified.")
+	m.SetBody("text/plain", "Congratulations! Your registration on food recipes website is now verified.")
 
 	// Replace "kerp gqur cvdg zdtu" with your app password or appropriate credentials
 	d := gomail.NewDialer("smtp.gmail.com", 587, "telaynew11@gmail.com", "kerp gqur cvdg zdtu")

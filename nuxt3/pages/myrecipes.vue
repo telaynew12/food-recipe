@@ -29,7 +29,7 @@
           <h3 class="font-semibold">Ingredients:</h3>
           <ul class="list-disc list-inside">
             <li v-for="ingredient in recipe.ingredients" :key="ingredient.id">
-              {{ ingredient.quantity }} {{ ingredient.name }}
+               {{ ingredient.name }}
             </li>
           </ul>
         </div>
@@ -74,125 +74,97 @@
     </div>
 
     <!-- Edit Recipe Modal -->
-    <div
-      v-if="editingRecipe"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-    >
-      <div class="bg-white p-6 rounded-lg">
-        <h2 class="text-xl font-bold mb-4">Edit Recipe</h2>
-        <form @submit.prevent="updateRecipe">
-          <div class="mb-4">
-            <label class="block font-semibold mb-2">Title</label>
-            <input
-              v-model="editingRecipe.title"
-              class="border rounded-md p-2 w-full"
-              type="text"
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block font-semibold mb-2">Description</label>
-            <textarea
-              v-model="editingRecipe.description"
-              class="border rounded-md p-2 w-full"
-            ></textarea>
-          </div>
-          <div class="mb-4">
-            <label class="block font-semibold mb-2">Preparation Time</label>
-            <input
-              v-model="editingRecipe.preparation_time"
-              class="border rounded-md p-2 w-full"
-              type="number"
-            />
-          </div>
-          <div class="mb-4">
-            <h3 class="font-semibold">Ingredients</h3>
-            <div
-              v-for="(ingredient, index) in editingRecipe.ingredients"
-              :key="ingredient.id || index"
-              class="flex items-center gap-2"
-            >
-              <input
-                v-model="ingredient.quantity"
-                class="border rounded-md p-2 w-1/4"
-                placeholder="Quantity"
-                type="text"
-              />
-              <input
-                v-model="ingredient.name"
-                class="border rounded-md p-2 w-3/4"
-                placeholder="Name"
-                type="text"
-              />
-              <button
-                type="button"
-                @click="removeIngredient(index)"
-                class="px-2 py-1 bg-red-500 text-white rounded-md"
-              >
-                Remove
-              </button>
-            </div>
-            <button
-              type="button"
-              @click="addIngredient"
-              class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md"
-            >
-              Add Ingredient
-            </button>
-          </div>
-
-          <div class="mb-4">
-            <h3 class="font-semibold">Steps</h3>
-            <div
-              v-for="(step, index) in editingRecipe.steps"
-              :key="step.id || index"
-              class="flex items-center gap-2"
-            >
-              <input
-                v-model="step.step_number"
-                class="border rounded-md p-2 w-1/4"
-                placeholder="Step Number"
-                type="number"
-              />
-              <textarea
-                v-model="step.description"
-                class="border rounded-md p-2 w-3/4"
-                placeholder="Description"
-              ></textarea>
-              <button
-                type="button"
-                @click="removeStep(index)"
-                class="px-2 py-1 bg-red-500 text-white rounded-md"
-              >
-                Remove
-              </button>
-            </div>
-            <button
-              type="button"
-              @click="addStep"
-              class="mt-2 px-4 py-2 bg-green-500 text-white rounded-md"
-            >
-              Add Step
-            </button>
-          </div>
-
-          <div class="flex gap-2">
-            <button
-              type="submit"
-              class="px-4 py-2 bg-green-500 text-white rounded-md"
-            >
-              Save
-            </button>
-            <button
-              @click="cancelEditing"
-              type="button"
-              class="px-4 py-2 bg-gray-500 text-white rounded-md"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+ <div
+    v-if="editingRecipe"
+    class="fixed inset-x-0 bg-black bg-opacity-50 flex items-center justify-center z-90 overflow-y-auto"
+    style="top: 64px; padding-bottom: 64px;"
+  >
+  <div class="bg-white p-6 rounded-lg max-h-[90vh] overflow-y-auto w-full max-w-2xl">
+    <h2 class="text-xl font-bold mb-4">Edit Recipe</h2>
+    <form @submit.prevent="updateRecipe">
+      <!-- Title -->
+      <div class="mb-4">
+        <label class="block font-semibold mb-2">Title</label>
+        <input
+          v-model="editingRecipe.title"
+          class="border rounded-md p-2 w-full"
+          type="text"
+        />
       </div>
-    </div>
+      <!-- Description -->
+      <div class="mb-4">
+        <label class="block font-semibold mb-2">Description</label>
+        <textarea
+          v-model="editingRecipe.description"
+          class="border rounded-md p-2 w-full"
+        ></textarea>
+      </div>
+      <!-- Preparation Time -->
+      <div class="mb-4">
+        <label class="block font-semibold mb-2">Preparation Time</label>
+        <input
+          v-model="editingRecipe.preparation_time"
+          class="border rounded-md p-2 w-full"
+          type="number"
+        />
+      </div>
+      <!-- Ingredients -->
+      <div class="mb-4">
+        <h3 class="font-semibold">Ingredients</h3>
+        <div
+          v-for="(ingredient, index) in editingRecipe.ingredients"
+          :key="ingredient.id || index"
+          class="flex items-center gap-2"
+        >
+          <input
+            v-model="ingredient.name"
+            class="border rounded-md p-2 w-full"
+            placeholder="Name"
+            type="text"
+          />
+        </div>
+      </div>
+      <!-- Steps -->
+      <div class="mb-4">
+        <h3 class="font-semibold">Steps</h3>
+        <div
+          v-for="(step, index) in editingRecipe.steps"
+          :key="step.id || index"
+          class="flex items-center gap-2"
+        >
+          <input
+            v-model="step.step_number"
+            class="border rounded-md p-2 w-1/4"
+            placeholder="Step Number"
+            type="number"
+          />
+          <textarea
+            v-model="step.description"
+            class="border rounded-md p-2 w-3/4"
+            placeholder="Description"
+          ></textarea>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div class="flex gap-2">
+        <button
+          type="submit"
+          class="px-4 py-2 bg-green-500 text-white rounded-md"
+        >
+          Save
+        </button>
+        <button
+          @click="cancelEditing"
+          type="button"
+          class="px-4 py-2 bg-gray-500 text-white rounded-md"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
   </div>
 </template>
 
@@ -233,7 +205,6 @@ const FETCH_RECIPES_QUERY = gql`
       ingredients {
         id
         name
-        quantity
       }
       steps {
         id
@@ -262,7 +233,7 @@ const UPDATE_RECIPE_MUTATION = gql`
             ingredients {
         id
         name
-        quantity
+        
       }
       steps {
         id

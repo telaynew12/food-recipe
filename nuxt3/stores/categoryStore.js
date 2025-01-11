@@ -2,6 +2,7 @@
 
 
 import { defineStore } from 'pinia';
+import piniaPersist from 'pinia-plugin-persistedstate';
 
 export const useCategoryStore = defineStore('categoryStore', {
   state: () => ({
@@ -16,4 +17,5 @@ export const useCategoryStore = defineStore('categoryStore', {
       this.selectedCategory = category;
     },
   },
+  persist: true, // This will persist the store state across page refreshes
 });

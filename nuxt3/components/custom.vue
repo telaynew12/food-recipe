@@ -1,47 +1,46 @@
 <template>
-  <div class="w-full h-screen p-6 bg-white shadow-md rounded-lg mt-10 overflow-auto">
+  <div class="w-full h-screen p-6 bg-gray-100 shadow-md rounded-lg mt-10 overflow-auto">
     <!-- Display All Recipes -->
     <div v-if="filteredRecipes.length" class="space-y-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div
           v-for="(recipe, index) in filteredRecipes"
           :key="recipe.id"
-          class="border p-4 rounded-lg shadow-sm"
+          class="border p-4 rounded-lg shadow-lg bg-white"
         >
           <!-- Recipe Title -->
-          <h2 class="text-2xl font-bold mb-4">{{ recipe.title }}</h2>
+          <h2 class="text-2xl font-bold mb-4 text-gray-800">{{ recipe.title }}</h2>
 
           <!-- Recipe Image -->
           <img
             v-if="recipe.featured_image"
             :src="getImageUrl(recipe.featured_image)"
             alt="Recipe Image"
-  class="w-full h-90 object-cover rounded-lg mb-4 cursor-pointer"
+            class="w-full h-60 object-cover rounded-lg mb-4 cursor-pointer"
             @click="navigateToDetails(recipe.id)"
           />
 
           <!-- Buttons Section -->
-          <div class="flex justify-start gap-6 mb-4 items-center">
+          <div class="flex items-center justify-between mb-4">
             <!-- Like Button -->
             <button
               @click="handleLike(index)"
               :class="{
-                'text-blue-500 font-bold': recipe.liked,
-                'text-gray-600': !recipe.liked
+                'text-yellow-500': recipe.liked,
+                'text-black': !recipe.liked
               }"
-              class="flex items-center space-x-2"
+              class="flex items-center space-x-1 text-4xl"
             >
-              <span>👍</span>
-              <span>{{ recipe.liked ? 'Liked' : 'Like' }}</span>
-              <span>({{ recipe.likesCount }})</span>
+              ♥
+              <span class="text-base font-medium">{{ recipe.likesCount }}</span>
             </button>
 
             <!-- Comments Button -->
             <button
               @click="toggleComments(index)"
-              class="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+              class="flex items-center space-x-1 text-gray-600 hover:text-gray-800 text-sm"
             >
-              <span>💬</span>
+              💬
               <span>Comments</span>
               <span>({{ recipe.commentsCount }})</span>
             </button>
@@ -53,34 +52,37 @@
                 'text-yellow-500': recipe.bookmarked,
                 'text-gray-600': !recipe.bookmarked
               }"
+              class="text-sm"
             >
               {{ recipe.bookmarked ? 'Bookmarked' : 'Bookmark' }}
             </button>
-          </div>
 
-          <!-- Rating Section -->
-          <div class="flex items-center space-x-1 mb-4">
-            <span class="font-semibold">Rate:</span>
-            <div class="flex">
-              <span
-                v-for="star in 5"
-                :key="star"
-                :class="{
-                  'text-yellow-400': recipe.currentRating >= star,
-                  'text-gray-400': recipe.currentRating < star
-                }"
-                class="cursor-pointer text-2xl"
-                @click="handleRating(index, star)"
-              >
-                ★
-              </span>
+            <!-- Rating Section -->
+            <div class="flex items-center space-x-1">
+              <span class="font-semibold">Rate:</span>
+              <div class="flex">
+                <span
+                  v-for="star in 5"
+                  :key="star"
+                  :class="{
+                    'text-yellow-400': recipe.currentRating >= star,
+                    'text-gray-400': recipe.currentRating < star
+                  }"
+                  class="cursor-pointer text-xl"
+                  @click="handleRating(index, star)"
+                >
+                  ★
+                </span>
+              </div>
             </div>
-            <span
-              v-if="recipe.hasRated"
-              class="ml-2 text-sm text-green-500"
+
+            <!-- Buy Button -->
+            <button
+             @click="handlebuy()"
+              class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             >
-              You rated this recipe: {{ recipe.currentRating }}
-            </span>
+              Buy
+            </button>
           </div>
 
           <!-- Comments Section -->
@@ -116,10 +118,12 @@
 
     <!-- No Recipes Available -->
     <div v-else>
-      <p class="text-center">No recipes available.</p>
+      <p class="text-center text-gray-600">No recipes available.</p>
     </div>
   </div>
 </template>
+
+
 
 
 
@@ -139,13 +143,14 @@ const { $apolloClient } = useNuxtApp();
 const recipes = ref([]);
 const authStore = useAuthStore();
 const recipeStore = useRecipeStore(); // Access the recipe store
+
+const backendBaseUrl = 'http://localhost:8085/';
 const getImageUrl = (path) => {
   return path ? `${backendBaseUrl}${path}` : null;
 };
 
 const isAuthenticated = computed(() => authStore.isAuthenticated); // Reactive check for authentication
 
-const backendBaseUrl = 'http://localhost:8085/';
 
 const searchQuery = computed({
   get: () => recipeStore.searchQuery,
@@ -242,6 +247,13 @@ const fetchRecipes = async () => {
 
 const loginPrompt = () => {
   router.push('/login');
+};
+const handlebuy = () => {
+   if (!isAuthenticated.value) {
+    loginPrompt(); // Trigger login if not authenticated
+    return;
+  }
+  router.push('/paymentPage');
 };
 
 const handleLike = async (index) => {

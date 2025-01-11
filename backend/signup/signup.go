@@ -57,7 +57,7 @@ func sendEmail(email, verificationCode string) error {
 
 	from := smtpUser
 	to := []string{email}
-	subject := "Subject: Verification Code\n"
+	subject := "Subject: Food Recipe Website Verifcation code\n"
 	body := fmt.Sprintf("Your verification code is: %s", verificationCode)
 	msg := []byte(subject + "\n" + body)
 

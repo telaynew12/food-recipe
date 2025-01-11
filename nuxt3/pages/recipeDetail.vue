@@ -11,7 +11,7 @@
         v-if="recipe.featured_image"
         :src="getImageUrl(recipe.featured_image)"
         alt="Recipe Image"
-        class="w-300 h-90 object-cover rounded-t-lg mb-4"
+        class="w-300 h-81 object-cover rounded-t-lg mb-4"
       />
       <h1 class="text-2xl font-bold mb-2">{{ recipe.title }}</h1>
       <p class="text-gray-700 mb-2">{{ recipe.description }}</p>
@@ -24,7 +24,7 @@
 
       <!-- Steps Section -->
       <h2 class="text-xl font-bold mt-6 mb-4">Steps</h2>
-      <ul class="list-decimal list-inside">
+      <ul>
         <li
           v-for="step in recipe.steps"
           :key="step.step_number"
@@ -42,7 +42,7 @@
           :key="ingredient.name"
           class="text-gray-700 mb-2"
         >
-          <strong>{{ ingredient.name }}:</strong> {{ ingredient.quantity }}
+          {{ ingredient.name }}:
         </li>
       </ul>
     </div>
@@ -72,10 +72,6 @@
 
 
 
-
-
-
-
 <script setup>
 import { computed, watchEffect } from 'vue';
 import { useQuery, useResult } from '@vue/apollo-composable';
@@ -102,7 +98,7 @@ const GET_RECIPE_QUERY = gql`
       }
       ingredients {
         name
-        quantity
+        
       }
     }
   }

@@ -1,37 +1,40 @@
 <template>
-  <div class="container mx-auto py-8 px-4">
-    <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Add Recipe with Details</h1>
+  <div class="container mx-auto py-8 px-4 max-w-4xl">
+    <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">
+      Add Recipe with Details
+    </h1>
 
-    <form @submit.prevent="submitRecipe" class="space-y-6 bg-white p-8 rounded-lg shadow-lg">
+    <form @submit.prevent="submitRecipe" class="bg-white p-6 rounded-lg shadow-md space-y-6">
       <div>
-        <label for="title" class="block text-gray-700 font-medium mb-2">Title</label>
+        <label for="title" class="block font-semibold text-gray-700 mb-2">Title</label>
         <input
           v-model="form.title"
           id="title"
           type="text"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
           placeholder="Enter recipe title"
           required
         />
       </div>
 
       <div>
-        <label for="description" class="block text-gray-700 font-medium mb-2">Description</label>
+        <label for="description" class="block font-semibold text-gray-700 mb-2">Description</label>
         <textarea
           v-model="form.description"
           id="description"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
           placeholder="Enter recipe description"
+          rows="4"
           required
         ></textarea>
       </div>
 
       <div>
-        <label for="category" class="block text-gray-700 font-medium mb-2">Category</label>
+        <label for="category" class="block font-semibold text-gray-700 mb-2">Category</label>
         <select
           v-model="selectedCategory"
           id="category"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
           @change="handleCategoryChange"
           required
         >
@@ -41,17 +44,18 @@
           </option>
           <option value="new">+ Add New Category</option>
         </select>
+
         <div v-if="isAddingCategory" class="mt-4">
           <input
             v-model="newCategory"
             type="text"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-green-300 focus:outline-none"
             placeholder="Enter new category name"
             required
           />
           <button
             @click.prevent="addNewCategory"
-            class="mt-2 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
+            class="mt-3 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
           >
             Add Category
           </button>
@@ -59,118 +63,103 @@
       </div>
 
       <div>
-        <label for="time" class="block text-gray-700 font-medium mb-2">Preparation Time (minutes)</label>
+        <label for="time" class="block font-semibold text-gray-700 mb-2">Preparation Time (minutes)</label>
         <input
           v-model="form.preparation_time"
           id="time"
           type="number"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
           placeholder="Enter preparation time"
           required
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Ingredients</label>
-        <div v-for="(ingredient, index) in form.ingredients" :key="index" class="flex gap-4 mb-4">
+        <label class="block font-semibold text-gray-700 mb-2">Ingredients</label>
+        <div v-for="(ingredient, index) in form.ingredients" :key="index" class="flex items-center gap-4 mb-3">
           <input
             v-model="ingredient.name"
             type="text"
-            class="w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
             placeholder="Ingredient name"
-            required
-          />
-          <input
-            v-model="ingredient.quantity"
-            type="text"
-            class="w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Quantity (e.g., 1 tsp)"
             required
           />
           <button
             @click.prevent="removeIngredient(index)"
-            class="text-red-500 hover:text-red-700 transition"
+            class="text-red-500 hover:text-red-600 transition"
           >
             Remove
           </button>
         </div>
-        <button
-          @click.prevent="addIngredient"
-          class="text-blue-500 hover:text-blue-700 transition"
-        >
+        <button @click.prevent="addIngredient" class="text-blue-500 hover:text-blue-600 transition">
           + Add Ingredient
         </button>
       </div>
 
       <div>
-        <label class="block text-gray-700 font-medium mb-2">Steps</label>
-        <div v-for="(step, index) in form.steps" :key="index" class="flex gap-4 mb-4">
+        <label class="block font-semibold text-gray-700 mb-2">Steps</label>
+        <div v-for="(step, index) in form.steps" :key="index" class="flex items-center gap-4 mb-3">
           <input
             v-model="step.step_number"
             type="number"
-            class="w-1/6 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-1/6 px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
             placeholder="Step #"
             required
           />
           <textarea
             v-model="step.description"
-            class="w-5/6 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-5/6 px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300 focus:outline-none"
             placeholder="Step description"
+            rows="2"
             required
           ></textarea>
           <button
             @click.prevent="removeStep(index)"
-            class="text-red-500 hover:text-red-700 transition"
+            class="text-red-500 hover:text-red-600 transition"
           >
             Remove
           </button>
         </div>
-        <button
-          @click.prevent="addStep"
-          class="text-blue-500 hover:text-blue-700 transition"
-        >
+        <button @click.prevent="addStep" class="text-blue-500 hover:text-blue-600 transition">
           + Add Step
         </button>
       </div>
 
-      <div>
-        <label class="block text-gray-700 font-medium mb-2">Upload Recipe Images</label>
-        <label
-          for="fileInput"
-          class="block w-full px-4 py-2 bg-blue-500 text-white text-center rounded-lg cursor-pointer hover:bg-blue-600 transition"
-        >
-          Choose File
-          <input
-            id="fileInput"
-            type="file"
-            class="hidden"
-            @change="handleFileChange"
-          />
-        </label>
-        <p class="text-sm text-gray-600 mt-2">Selected: {{ selectedFile?.name || 'None' }}</p>
-        <button
-          @click.prevent="uploadFile"
-          :disabled="!selectedFile"
-          class="mt-2 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          Upload Image
-        </button>
-        <p v-if="uploadStatus" class="text-sm text-gray-500 mt-2">{{ uploadStatus }}</p>
-      </div>
-
       <button
         type="submit"
-        class="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition"
+        class="w-full bg-blue-500 text-white py-3 rounded-lg shadow-lg hover:bg-blue-600 transition"
       >
         Submit Recipe
       </button>
 
-      <p v-if="successMessage" class="text-green-500 mt-4">{{ successMessage }}</p>
-      <p v-if="errorMessage" class="text-red-500 mt-4">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="text-green-500 mt-6">{{ successMessage }}</p>
+      <p v-if="errorMessage" class="text-red-500 mt-6">{{ errorMessage }}</p>
     </form>
+
+    <div class="mt-12 p-6 bg-gray-50 rounded-lg shadow-md">
+      <h2 class="text-xl font-bold text-gray-700 text-center mb-6">File Upload</h2>
+
+      <label
+        for="fileInput"
+        class="block w-full p-4 text-center bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition"
+      >
+        Choose File  
+        <input id="fileInput" type="file" class="hidden" @change="handleFileChange" />
+      </label>
+
+      <button
+        @click="uploadFile"
+        :disabled="!selectedFile"
+        class="w-full mt-4 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition disabled:bg-gray-300 disabled:cursor-not-allowed"
+      >
+        Upload
+      </button>
+
+      <p v-if="uploadStatus" class="text-gray-600 mt-4">{{ uploadStatus }}</p>
+    </div>
   </div>
 </template>
-
+ n                         pkkiojjj
 
 <script setup>
 import { ref, onMounted } from "vue";
@@ -185,7 +174,7 @@ const form = ref({
   category_id: "",
   user_id: "",
   preparation_time: "",
-  ingredients: [{ name: "", quantity: "" }],
+  ingredients: [{ name: "" }],
   steps: [{ step_number: 1, description: "" }],
   images: [{ image_url: "", is_featured: false }],
   shares: [{ is_shared: false }], // Adjusted for compatibility
@@ -200,6 +189,7 @@ const successMessage = ref("");
 const errorMessage = ref("");
 const uploadStatus = ref("");
 const selectedFile = ref(null);
+const isAuthenticated = ref(false);
 
 const client = useApolloClient().client;
 
@@ -210,11 +200,21 @@ const fetchUserIdFromToken = () => {
       try {
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         form.value.user_id = decodedToken.userId;
+        isAuthenticated.value = true; // User is authenticated
       } catch (error) {
         console.error("Failed to decode token", error);
         errorMessage.value = "Invalid token. Please log in again.";
+        isAuthenticated.value = false;
       }
+    } else {
+      isAuthenticated.value = false;
     }
+  }
+};
+
+const ensureAuthentication = () => {
+  if (!isAuthenticated.value) {
+    router.push("/login");
   }
 };
 
@@ -270,8 +270,13 @@ const addNewCategory = async () => {
 };
 
 const addIngredient = () => {
-  form.value.ingredients.push({ name: "", quantity: "" });
+  if (form.value.ingredients.some((ingredient) => ingredient.name.trim() === "")) {
+    errorMessage.value = "Please fill the existing ingredient before adding a new one.";
+    return;
+  }
+  form.value.ingredients.push({ name: "" });
 };
+
 
 const removeIngredient = (index) => {
   form.value.ingredients.splice(index, 1);
@@ -305,25 +310,32 @@ const submitRecipe = async () => {
       }
     `;
 
+    // Ensure the structure of ingredients and steps is valid
+    const ingredients = form.value.ingredients
+      ?.filter((ingredient) => ingredient.name?.trim()) // Ensure valid names
+      .map((ingredient) => ({ name: ingredient.name })) || [];
+
+    const steps = form.value.steps
+      ?.filter((step) => step.description?.trim()) // Ensure valid steps
+      .map(({ step_number, description }) => ({
+        step_number,
+        description,
+      })) || [];
+
+    const shares = form.value.shares
+      ?.map(({ is_shared }) => ({ is_shared })) || [];
+
+    // Build the variables object
     const variables = {
       input: {
         title: form.value.title,
         description: form.value.description,
         category_id: form.value.category_id,
-        user_id: form.value.user_id,
-        preparation_time: parseInt(form.value.preparation_time, 10),
-        ingredients: {
-          data: form.value.ingredients.map(({ name, quantity }) => ({ name, quantity })),
-        },
-        steps: {
-          data: form.value.steps.map(({ step_number, description }) => ({
-            step_number,
-            description,
-          })),
-        },
-        shares: {
-          data: form.value.shares.map(({ is_shared }) => ({ is_shared })),
-        },
+        user_id: form.value.user_id || null, // Ensure this is nullable if not mandatory
+        preparation_time: parseInt(form.value.preparation_time, 10) || null,
+        ingredients: { data: ingredients },
+        steps: { data: steps },
+        shares: { data: shares },
       },
     };
 
@@ -331,24 +343,28 @@ const submitRecipe = async () => {
       mutation,
       variables,
     });
-    recipeId = data.insert_recipes_one.id
-     successMessage.value = `Recipe "${data.insert_recipes_one.title}" added successfully!`;
+
+    recipeId = data.insert_recipes_one.id;
+    successMessage.value = `Recipe "${data.insert_recipes_one.title}" added successfully!`;
+
+    // Reset the form
     form.value = {
       title: "",
       description: "",
       category_id: "",
-      user_id: "",
+      user_id: form.value.user_id,
       preparation_time: "",
-      ingredients: [{ name: "", quantity: "" }],
+      ingredients: [{ name: "" }],
       steps: [{ step_number: 1, description: "" }],
       images: [{ image_url: "", is_featured: false }],
-    
+      shares: [{ is_shared: false }],
     };
   } catch (error) {
     console.error("Failed to submit recipe:", error);
-    errorMessage.value = "Failed to submit recipe. Please try again.";
+    errorMessage.value = `Failed to submit recipe: ${error.message}`;
   }
 };
+
 
 // GraphQL mutation for file upload
 const FILE_UPLOAD = gql`
@@ -402,6 +418,7 @@ const uploadFile = async () => {
 
 onMounted(() => {
   fetchUserIdFromToken();
+  ensureAuthentication(); // Redirects to login if not authenticated
   fetchCategories();
 });
 </script>

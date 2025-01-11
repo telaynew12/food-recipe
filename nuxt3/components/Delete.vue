@@ -1,110 +1,91 @@
 <template>
-    <div class="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 class="text-2xl font-semibold mb-6">Manage Recipe</h1>
-      <div v-if="recipe">
-        <h2 class="text-xl font-semibold">{{ recipe.title }}</h2>
-        <p>{{ recipe.description }}</p>
-        <p><strong>Preparation Time:</strong> {{ recipe.prep_time }} mins</p>
-        <p><strong>Cooking Time:</strong> {{ recipe.cook_time }} mins</p>
-        <p><strong>Servings:</strong> {{ recipe.servings }}</p>
-        <p><strong>Category:</strong> {{ recipe.category_id }}</p>
-        <img v-if="recipe.image_url" :src="recipe.image_url" alt="Recipe Image" class="mt-4 w-full max-w-xs">
-  
-        <!-- Delete Button -->
-        <div class="mt-6">
-          <button
-            @click="deleteRecipe"
-            class="py-2 px-4 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 focus:ring-2 focus:ring-red-500"
-          >
-            Delete Recipe
-          </button>
-        </div>
-  
-        <!-- Success or Error Messages -->
-        <div v-if="success" class="mt-4 text-green-500">Recipe deleted successfully!</div>
-        <div v-if="error" class="mt-4 text-red-500">Error: {{ error.message }}</div>
-      </div>
+  <div v-if="userId">
+    <h1 class="font-bold"> Liked Rcipes</h1>
+    <h1>Recipes for User ID: {{ userId }}</h1>
+    <div v-if="recipes && recipes.length > 0">
+      <ul>
+        <li v-for="recipe in recipes" :key="recipe.id">
+          <h2> <strong>Recipe Title:</strong>{{ recipe.title }}</h2>
+      
+          <div v-if="recipe.likes.length > 0">
+            <h3 class="font-bold">Liked by:</h3>
+            <ul>
+  <li v-for="(like, index) in recipe.likes" :key="like.id">
+                 {{ index + 1 }}.{{ like.user.name }}
+              </li>
+            </ul>
+          </div>
+          <div v-else>
+            <p>No likes for this recipe yet.</p>
+          </div>
+        </li>
+      </ul>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue';
-  import { gql } from '@apollo/client/core';
-  import { useNuxtApp } from '#app';
-  import { useRoute } from 'vue-router';
-  
-  // Get recipe ID from route
-  const route = useRoute();
-  const recipeId = route.params.id; // Assuming the recipe ID is passed as a route parameter
-  
-  const recipe = ref(null);
-  const error = ref(null);
-  const success = ref(false);
-  
-  const { $apolloClient } = useNuxtApp();
-  
-  // GraphQL Mutation for deleting a recipe
-  const DELETE_RECIPE_MUTATION = gql`
-    mutation DeleteRecipe($id: uuid!) {
-      delete_recipes(where: { id: { _eq: $id } }) {
-        affected_rows
+    <div v-else>
+      <p>No recipes found for this user. Please check again later.</p>
+    </div>
+  </div>
+  <div v-else>
+    <p>User ID not available. Please log in to view your recipes.</p>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { gql } from '@apollo/client/core';
+import { useNuxtApp } from '#app';
+// Access the authentication store
+const authStore = useAuthStore();
+const userId = computed(() => authStore.userId);
+
+// Reactive variable to store recipes
+const recipes = ref([]);
+
+// GraphQL query for fetching recipes with likes and user names
+const FETCH_RECIPES_QUERY = gql`
+  query FetchRecipes($userId: uuid!) {
+    recipes(where: { user_id: { _eq: $userId } }) {
+      id
+      title
+      description
+      featured_image
+      likes {
+        id
+        user {
+          id
+          name
+        }
       }
     }
-  `;
-  
-  // Fetch recipe data (You can also add the recipe query here for the full details)
-  const fetchRecipe = async () => {
-    try {
-      const response = await $apolloClient.query({
-        query: gql`
-          query GetRecipe($id: uuid!) {
-            recipes_by_pk(id: $id) {
-              id
-              title
-              description
-              prep_time
-              cook_time
-              servings
-              image_url
-              category_id
-            }
-          }
-        `,
-        variables: { id: recipeId }
-      });
-      recipe.value = response.data.recipes_by_pk;
-    } catch (err) {
-      error.value = err;
-      console.error('Error fetching recipe:', err);
+  }
+`;
+
+// Fetch recipes function
+const fetchRecipes = async () => {
+  try {
+    const { client } = useApolloClient();
+    const { data } = await client.query({
+      query: FETCH_RECIPES_QUERY,
+      variables: { userId: userId.value },
+    });
+
+    if (data && data.recipes) {
+      recipes.value = data.recipes;
+    } else {
+      console.log('No recipes found.');
     }
-  };
-  
-  // Call to delete the recipe
-  const deleteRecipe = async () => {
-    try {
-      const response = await $apolloClient.mutate({
-        mutation: DELETE_RECIPE_MUTATION,
-        variables: { id: recipeId }
-      });
-  
-      if (response.data.delete_recipes.affected_rows > 0) {
-        success.value = true;
-        // Optionally, you can redirect the user after deletion
-        // You can use `useRouter` from 'vue-router' to navigate to another page, like a recipe list page
-      } else {
-        error.value = { message: 'Failed to delete recipe.' };
-      }
-    } catch (err) {
-      error.value = err;
-      console.error('Error deleting recipe:', err);
-    }
-  };
-  
-  // Fetch recipe data when the component is mounted
-  fetchRecipe();
-  </script>
-  
-  <style scoped>
-  /* Custom styles for delete button and error/success messages */
-  </style>
-  
+  } catch (error) {
+    console.error('Error fetching recipes:', error.message);
+  }
+};
+
+// Fetch recipes when the component is mounted
+onMounted(() => {
+  if (userId.value) {
+    fetchRecipes();
+  } else {
+    console.error('User ID is not available.');
+  }
+});
+</script>

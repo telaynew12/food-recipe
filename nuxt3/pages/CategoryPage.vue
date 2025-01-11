@@ -34,18 +34,17 @@
 
 <script setup>
 import { useQuery } from '@vue/apollo-composable';
-import { computed, watch } from 'vue';
+import { computed, ref, watchEffect, onMounted } from 'vue';
 import gql from 'graphql-tag';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useRecipeStore } from '@/stores/recipe'; // Search query store
 
 const backendBaseUrl = 'http://localhost:8085/';
 
+// Function to get image URL
 const getImageUrl = (path) => {
   return path ? `${backendBaseUrl}${path}` : null;
 };
-
-
 
 // GraphQL query
 const GET_RECIPES_BY_CATEGORIES = gql`
@@ -66,8 +65,7 @@ const GET_RECIPES_BY_CATEGORIES = gql`
 
 // Access stores
 const categoryStore = useCategoryStore();
-const recipeStore = useRecipeStore(); // Search store
-const selectedCategory = computed(() => categoryStore.selectedCategory);
+const recipeStore = useRecipeStore(); // Search query store
 
 // Search query state
 const searchQuery = computed({
@@ -75,9 +73,16 @@ const searchQuery = computed({
   set: (value) => recipeStore.setSearchQuery(value),
 });
 
-// Query recipes
+// Provide a default category value if selectedCategory is null
+const currentCategory = computed(() => categoryStore.selectedCategory || "DefaultCategory");
+
+// Reactive property to track whether the category is loaded
+const isCategoryLoaded = ref(false);
+
+// Query recipes using the currentCategory value
 const { result, loading, error, refetch } = useQuery(GET_RECIPES_BY_CATEGORIES, {
-  categoryName: selectedCategory.value,
+  categoryName: currentCategory.value, // Use currentCategory which has a default value
+  skip: !isCategoryLoaded.value, // Skip the query until the category is loaded
 });
 
 // Recipes
@@ -93,14 +98,25 @@ const filteredRecipes = computed(() => {
   );
 });
 
-// Watch for category changes and refetch
-watch(
-  () => selectedCategory.value,
-  (newCategory) => {
-    if (newCategory) {
-      refetch({ categoryName: newCategory });
-    }
-  },
-  { immediate: true }
-);
+// Watch for changes in categoryStore.selectedCategory and refetch recipes
+watchEffect(() => {
+  if (categoryStore.selectedCategory) {
+    isCategoryLoaded.value = true; // Mark category as loaded
+    refetch({ categoryName: categoryStore.selectedCategory });
+  } else {
+    isCategoryLoaded.value = false; // If no category is selected, skip fetching
+  }
+});
+
+// Ensure category is loaded on page load
+onMounted(() => {
+  if (categoryStore.selectedCategory) {
+    isCategoryLoaded.value = true;
+  }
+});
 </script>
+
+
+
+
+
