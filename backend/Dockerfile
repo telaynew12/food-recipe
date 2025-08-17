@@ -1,18 +1,27 @@
-# Use a base Go image
-FROM golang:1.23
+# Use an official Golang image
+FROM golang:1.20 as builder
 
-
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy Go files
-COPY . .
+# Copy the Go modules and dependencies
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
 
-# Install dependencies and build the Go app
-RUN go mod tidy && go build -o main .
+# Copy the source code
+COPY . ./
+
+# Build the application
+RUN go build -o main .
+
+# Use a lightweight image for production
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/main .
 
 # Expose the application port
-EXPOSE 8081
+EXPOSE 8080
 
 # Run the application
 CMD ["./main"]
